@@ -22,6 +22,7 @@ public class YicemApplication implements CommandLineRunner {
 	  // save a couple of customers
 	  repository.save(new Customer("Alice", "Smith"));
 	  repository.save(new Customer("Bob", "Smith"));
+	  repository.save(new Customer("Ali", "Yılmaz"));
   
 	  // fetch all customers
 	  System.out.println("Customers found with findAll():");
