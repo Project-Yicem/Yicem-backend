@@ -4,12 +4,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
 @Getter
 @Setter
-@Builder
 @ToString
 public class Buyer extends User {
     //private List<Review> reviews;
@@ -17,5 +17,8 @@ public class Buyer extends User {
     //private List<Report> supportReports;
     //private List<Seller> favoriteSellers;
     //TODO: Achievement attribute eklenecek.
-
+    @Builder
+    public Buyer (ObjectId id, String username, String email, String password) {
+        super(id, username, email, password);
+    }
 }
