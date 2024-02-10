@@ -6,9 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.bson.types.ObjectId;
 
-import java.util.Date;
-import java.util.List;
-
 @Getter
 @Setter
 @ToString
@@ -24,5 +21,18 @@ public class Seller extends User {
     private String workingHours;
     //private List<Transaction> pastTransactions;
     private String locationCoordinates;
+
+    @Builder
+    public Seller (ObjectId id, String username, String email, String password, String address, String phone, boolean isApproved, String businessName, float reservationTimeout,
+                   String workingHours, String locationCoordinates) {
+        super(id, username, email, password);
+        this.address = address;
+        this.phone = phone;
+        this.isApproved = isApproved;
+        this.businessName = businessName;
+        this.reservationTimeout = reservationTimeout;
+        this.workingHours = workingHours;
+        this.locationCoordinates = locationCoordinates;
+    }
 
 }
