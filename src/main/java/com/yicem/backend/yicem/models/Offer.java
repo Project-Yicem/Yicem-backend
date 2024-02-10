@@ -1,4 +1,4 @@
-package com.yicem.backend.yicem.entity;
+package com.yicem.backend.yicem.models;
 
 import org.springframework.data.annotation.Id;
 
