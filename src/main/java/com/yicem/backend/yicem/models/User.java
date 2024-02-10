@@ -7,7 +7,6 @@ import org.springframework.data.annotation.Id;
 @Getter
 @Setter
 @ToString
-@Builder
 @AllArgsConstructor
 public class User {
 

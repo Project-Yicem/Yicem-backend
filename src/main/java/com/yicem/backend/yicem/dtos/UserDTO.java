@@ -14,14 +14,4 @@ public record UserDTO(
                 u.getEmail(), u.getPassword());
     }
 
-    public User toUser() {
-        ObjectId _id = id == null ? new ObjectId() : new ObjectId(id);
-        return User.builder()
-                .id(_id)
-                .username(username)
-                .email(email)
-                .password(password)
-                .build();
-    }
-
 }
