@@ -38,4 +38,5 @@ public record SellerDTO(
                 .locationCoordinates(locationCoordinates)
                 .build();
     }
+
 }

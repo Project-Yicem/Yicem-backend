@@ -1,14 +1,21 @@
 package com.yicem.backend.yicem.models;
 
-import org.springframework.data.annotation.Id;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.bson.types.ObjectId;
 
 import java.util.Date;
 import java.util.List;
 
+@Getter
+@Setter
+@ToString
+@Builder
 public class Offer {
 
-   @Id
-   private String id;
+   private ObjectId id;
    private String description;
 
    private boolean isMysteryBox;
@@ -28,4 +35,5 @@ public class Offer {
    //private List<Reservation> reservations;
 
    private Date offeredAt;
+
 }

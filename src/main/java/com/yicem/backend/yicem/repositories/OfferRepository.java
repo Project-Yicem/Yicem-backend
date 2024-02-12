@@ -9,7 +9,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.ReplaceOneModel;
-import com.yicem.backend.yicem.models.Seller;
+import com.yicem.backend.yicem.models.Offer;
 import jakarta.annotation.PostConstruct;
 import org.bson.BsonDocument;
 import org.bson.types.ObjectId;
@@ -23,7 +23,7 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.ReturnDocument.AFTER;
 
 @Repository
-public class SellerRepository {
+public class OfferRepository {
 
     private static final TransactionOptions txnOptions = TransactionOptions.builder()
             .readPreference(ReadPreference.primary())
@@ -33,57 +33,57 @@ public class SellerRepository {
 
     private final MongoClient client;
 
-    private MongoCollection<Seller> sellerCollection;
+    private MongoCollection<Offer> offerCollection;
 
-    public SellerRepository(MongoClient client) {
+    public OfferRepository(MongoClient client) {
         this.client = client;
     }
 
     @PostConstruct
     void init() {
-        sellerCollection = client.getDatabase("yicem").getCollection("sellers", Seller.class);
+        offerCollection = client.getDatabase("yicem").getCollection("offers", Offer.class);
     }
 
-    public Seller save(Seller seller){
-        seller.setId(new ObjectId());
-        sellerCollection.insertOne(seller);
-        return seller;
+    public Offer save(Offer offer){
+        offer.setId(new ObjectId());
+        offerCollection.insertOne(offer);
+        return offer;
     }
 
-    public List<Seller> saveAll(List<Seller> seller) {
+    public List<Offer> saveAll(List<Offer> offer) {
         try (ClientSession clientSession = client.startSession()) {
             return clientSession.withTransaction(() -> {
-                seller.forEach(p -> p.setId(new ObjectId()));
-                sellerCollection.insertMany(clientSession, seller);
-                return seller;
+                offer.forEach(p -> p.setId(new ObjectId()));
+                offerCollection.insertMany(clientSession, offer);
+                return offer;
             }, txnOptions);
         }
     }
 
-    public List<Seller> findAll() {
-        return sellerCollection.find().into(new ArrayList<>());
+    public List<Offer> findAll() {
+        return offerCollection.find().into(new ArrayList<>());
     }
 
-    public List<Seller> findAll(List<String> ids) {
-        return sellerCollection.find(in("_id", mapToObjectIds(ids))).into(new ArrayList<>());
+    public List<Offer> findAll(List<String> ids) {
+        return offerCollection.find(in("_id", mapToObjectIds(ids))).into(new ArrayList<>());
     }
 
-    public Seller findOne(String id) {
-        return sellerCollection.find(eq("_id", new ObjectId(id))).first();
+    public Offer findOne(String id) {
+        return offerCollection.find(eq("_id", new ObjectId(id))).first();
     }
 
     public long count() {
-        return sellerCollection.countDocuments();
+        return offerCollection.countDocuments();
     }
 
     public long delete(String id) {
-        return sellerCollection.deleteOne(eq("_id", new ObjectId(id))).getDeletedCount();
+        return offerCollection.deleteOne(eq("_id", new ObjectId(id))).getDeletedCount();
     }
 
     public long delete(List<String> ids) {
         try (ClientSession clientSession = client.startSession()) {
             return clientSession.withTransaction(
-                    () -> sellerCollection.deleteMany(clientSession, in("_id", mapToObjectIds(ids))).getDeletedCount(),
+                    () -> offerCollection.deleteMany(clientSession, in("_id", mapToObjectIds(ids))).getDeletedCount(),
                     txnOptions);
         }
     }
@@ -91,23 +91,23 @@ public class SellerRepository {
     public long deleteAll() {
         try (ClientSession clientSession = client.startSession()) {
             return clientSession.withTransaction(
-                    () -> sellerCollection.deleteMany(clientSession, new BsonDocument()).getDeletedCount(), txnOptions);
+                    () -> offerCollection.deleteMany(clientSession, new BsonDocument()).getDeletedCount(), txnOptions);
         }
     }
 
-    public Seller update(Seller seller) {
+    public Offer update(Offer offer) {
         FindOneAndReplaceOptions options = new FindOneAndReplaceOptions().returnDocument(AFTER);
-        return sellerCollection.findOneAndReplace(eq("_id", seller.getId()), seller, options);
+        return offerCollection.findOneAndReplace(eq("_id", offer.getId()), offer, options);
     }
 
-    public long update(List<Seller> sellers) {
-        List<ReplaceOneModel<Seller>> writes = sellers.stream()
+    public long update(List<Offer> offers) {
+        List<ReplaceOneModel<Offer>> writes = offers.stream()
                 .map(p -> new ReplaceOneModel<>(eq("_id", p.getId()),
                         p))
                 .toList();
         try (ClientSession clientSession = client.startSession()) {
             return clientSession.withTransaction(
-                    () -> sellerCollection.bulkWrite(clientSession, writes).getModifiedCount(), txnOptions);
+                    () -> offerCollection.bulkWrite(clientSession, writes).getModifiedCount(), txnOptions);
         }
     }
 
