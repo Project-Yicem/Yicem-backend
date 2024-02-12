@@ -29,24 +29,24 @@ public class BuyerController {
 
     @PostMapping("buyers")
     @ResponseStatus(HttpStatus.CREATED)
-    public List<BuyerDTO> postPersons(@RequestBody List<BuyerDTO> buyers) {
+    public List<BuyerDTO> postBuyers(@RequestBody List<BuyerDTO> buyers) {
         return buyerService.saveAll(buyers);
     }
 
     @GetMapping("buyers")
-    public List<BuyerDTO> getPersons() {
+    public List<BuyerDTO> getBuyers() {
         return buyerService.findAll();
     }
 
     @GetMapping("buyer/{id}")
-    public ResponseEntity<BuyerDTO> getPerson(@PathVariable String id) {
+    public ResponseEntity<BuyerDTO> getBuyer(@PathVariable String id) {
         BuyerDTO BuyerDTO = buyerService.findOne(id);
         if (BuyerDTO == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         return ResponseEntity.ok(BuyerDTO);
     }
 
     @GetMapping("buyers/{ids}")
-    public List<BuyerDTO> getPersons(@PathVariable String ids) {
+    public List<BuyerDTO> getBuyers(@PathVariable String ids) {
         List<String> listIds = List.of(ids.split(","));
         return buyerService.findAll(listIds);
     }
@@ -57,28 +57,28 @@ public class BuyerController {
     }
 
     @DeleteMapping("buyer/{id}")
-    public Long deletePerson(@PathVariable String id) {
+    public Long deleteBuyer(@PathVariable String id) {
         return buyerService.delete(id);
     }
 
     @DeleteMapping("buyers/{ids}")
-    public Long deletePersons(@PathVariable String ids) {
+    public Long deleteBuyers(@PathVariable String ids) {
         List<String> listIds = List.of(ids.split(","));
         return buyerService.delete(listIds);
     }
 
     @DeleteMapping("buyers")
-    public Long deletePersons() {
+    public Long deleteBuyers() {
         return buyerService.deleteAll();
     }
 
     @PutMapping("buyer")
-    public BuyerDTO putPerson(@RequestBody BuyerDTO BuyerDTO) {
+    public BuyerDTO putBuyer(@RequestBody BuyerDTO BuyerDTO) {
         return buyerService.update(BuyerDTO);
     }
 
     @PutMapping("buyers")
-    public Long putPerson(@RequestBody List<BuyerDTO> buyers) {
+    public Long putBuyer(@RequestBody List<BuyerDTO> buyers) {
         return buyerService.update(buyers);
     }
 
