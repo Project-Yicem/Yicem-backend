@@ -4,12 +4,23 @@ import com.mongodb.ReadConcern;
 import com.mongodb.ReadPreference;
 import com.mongodb.TransactionOptions;
 import com.mongodb.WriteConcern;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.FindOneAndReplaceOptions;
+import com.mongodb.client.model.ReplaceOneModel;
 import com.yicem.backend.yicem.models.Buyer;
 import jakarta.annotation.PostConstruct;
+import org.bson.BsonDocument;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.ReturnDocument.AFTER;
 
 @Repository
 public class BuyerRepository {
@@ -19,7 +30,7 @@ public class BuyerRepository {
             .writeConcern(WriteConcern.MAJORITY)
             .build();
 
-    private MongoClient client;
+    private final MongoClient client;
 
     private MongoCollection <Buyer> buyerCollection;
 
@@ -37,7 +48,70 @@ public class BuyerRepository {
         buyerCollection.insertOne(buyer);
         return buyer;
     }
+    
+    public List<Buyer> saveAll(List<Buyer> buyer) {
+        try (ClientSession clientSession = client.startSession()) {
+            return clientSession.withTransaction(() -> {
+                buyer.forEach(p -> p.setId(new ObjectId()));
+                buyerCollection.insertMany(clientSession, buyer);
+                return buyer;
+            }, txnOptions);
+        }
+    }
 
+    public List<Buyer> findAll() {
+        return buyerCollection.find().into(new ArrayList<>());
+    }
 
+    public List<Buyer> findAll(List<String> ids) {
+        return buyerCollection.find(in("_id", mapToObjectIds(ids))).into(new ArrayList<>());
+    }
 
+    public Buyer findOne(String id) {
+        return buyerCollection.find(eq("_id", new ObjectId(id))).first();
+    }
+
+    public long count() {
+        return buyerCollection.countDocuments();
+    }
+
+    public long delete(String id) {
+        return buyerCollection.deleteOne(eq("_id", new ObjectId(id))).getDeletedCount();
+    }
+
+    public long delete(List<String> ids) {
+        try (ClientSession clientSession = client.startSession()) {
+            return clientSession.withTransaction(
+                    () -> buyerCollection.deleteMany(clientSession, in("_id", mapToObjectIds(ids))).getDeletedCount(),
+                    txnOptions);
+        }
+    }
+
+    public long deleteAll() {
+        try (ClientSession clientSession = client.startSession()) {
+            return clientSession.withTransaction(
+                    () -> buyerCollection.deleteMany(clientSession, new BsonDocument()).getDeletedCount(), txnOptions);
+        }
+    }
+
+    public Buyer update(Buyer personEntity) {
+        FindOneAndReplaceOptions options = new FindOneAndReplaceOptions().returnDocument(AFTER);
+        return buyerCollection.findOneAndReplace(eq("_id", personEntity.getId()), personEntity, options);
+    }
+
+    public long update(List<Buyer> personEntities) {
+        List<ReplaceOneModel<Buyer>> writes = personEntities.stream()
+                .map(p -> new ReplaceOneModel<>(eq("_id", p.getId()),
+                        p))
+                .toList();
+        try (ClientSession clientSession = client.startSession()) {
+            return clientSession.withTransaction(
+                    () -> buyerCollection.bulkWrite(clientSession, writes).getModifiedCount(), txnOptions);
+        }
+    }
+
+    private List<ObjectId> mapToObjectIds(List<String> ids) {
+        return ids.stream().map(ObjectId::new).toList();
+    }
+    
 }

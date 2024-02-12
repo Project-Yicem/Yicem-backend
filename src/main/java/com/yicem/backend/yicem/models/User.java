@@ -2,12 +2,12 @@ package com.yicem.backend.yicem.models;
 
 import lombok.*;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
 
 @Getter
 @Setter
 @ToString
 @AllArgsConstructor
+@NoArgsConstructor
 public class User {
 
     private ObjectId id;
