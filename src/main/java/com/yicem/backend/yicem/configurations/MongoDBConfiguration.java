@@ -1,4 +1,4 @@
-package com.yicem.backend.yicem;
+package com.yicem.backend.yicem.configurations;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
