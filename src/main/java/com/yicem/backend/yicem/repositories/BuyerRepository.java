@@ -10,6 +10,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.yicem.backend.yicem.models.Buyer;
+import com.yicem.backend.yicem.models.User;
 import jakarta.annotation.PostConstruct;
 import org.bson.BsonDocument;
 import org.bson.types.ObjectId;
@@ -34,18 +35,22 @@ public class BuyerRepository {
 
     private MongoCollection <Buyer> buyerCollection;
 
+    private MongoCollection <User> userCollection;
+
     public BuyerRepository(MongoClient client) {
         this.client = client;
     }
 
     @PostConstruct
     void init() {
+        userCollection = client.getDatabase("yicem").getCollection("users", User.class);
         buyerCollection = client.getDatabase("yicem").getCollection("buyers", Buyer.class);
     }
 
     public Buyer save(Buyer buyer){
         buyer.setId(new ObjectId());
         buyerCollection.insertOne(buyer);
+        userCollection.insertOne(buyer);
         return buyer;
     }
     
