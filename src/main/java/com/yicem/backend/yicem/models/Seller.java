@@ -1,38 +1,43 @@
 package com.yicem.backend.yicem.models;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.bson.types.ObjectId;
+
+import java.util.List;
 
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class Seller extends User {
 
+    private boolean isApproved;
     private String address;
     private String phone;
-    private boolean isApproved;
-    //private List<Review> reviews;
     private String businessName;
-    //private List<Offer> currentOffers;
-    private float reservationTimeout;
     private String workingHours;
-    //private List<Transaction> pastTransactions;
     private String locationCoordinates;
+    private float reservationTimeout;
+    private List<ObjectId> reviews;
+    private List<ObjectId> currentOffers;
+    private List<ObjectId> pastTransactions;
 
     @Builder
-    public Seller (ObjectId id, String username, String email, String password, String address, String phone, boolean isApproved, String businessName, float reservationTimeout,
-                   String workingHours, String locationCoordinates) {
+    public Seller (ObjectId id, String username, String email, String password, boolean isApproved, String address,
+                   String phone, String businessName, String workingHours, String locationCoordinates,
+                   float reservationTimeout, List<ObjectId> reviews, List<ObjectId> currentOffers,
+                   List<ObjectId> pastTransactions) {
         super(id, username, email, password);
+        this.isApproved = isApproved;
         this.address = address;
         this.phone = phone;
-        this.isApproved = isApproved;
         this.businessName = businessName;
-        this.reservationTimeout = reservationTimeout;
         this.workingHours = workingHours;
         this.locationCoordinates = locationCoordinates;
+        this.reservationTimeout = reservationTimeout;
+        this.reviews = reviews;
+        this.currentOffers = currentOffers;
+        this.pastTransactions = pastTransactions;
     }
 
 }

@@ -1,15 +1,12 @@
 package com.yicem.backend.yicem.models;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.bson.types.ObjectId;
 
 @Getter
 @Setter
 @ToString
-@Builder
+@NoArgsConstructor
 public class Review {
 
     private ObjectId id;
@@ -18,4 +15,12 @@ public class Review {
     private String comment;
     private float rating;
 
+    @Builder
+    public Review(ObjectId id, ObjectId buyerId, ObjectId sellerId, String comment, float rating) {
+        this.id = id;
+        this.buyerId = buyerId;
+        this.sellerId = sellerId;
+        this.comment = comment;
+        this.rating = rating;
+    }
 }

@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record OfferDTO(
         String id,
@@ -16,12 +17,14 @@ public record OfferDTO(
         List<String> categories,
         boolean isReserved,
         boolean isCompleted,
-        Date offeredAt) {
+        Date offeredAt,
+        List<String> reservations) {
 
     public OfferDTO(Offer o) {
         this(o.getId() == null ? ObjectId.get().toHexString() : o.getId().toHexString(), o.getDescription(),
                 o.isMysteryBox(), o.getPrice(), o.getItemCount(), o.getOfferName(), o.getCategories(),
-                o.isReserved(), o.isCompleted(), o.getOfferedAt());
+                o.isReserved(), o.isCompleted(), o.getOfferedAt(),
+                o.getReservations().stream().map(ObjectId::toHexString).collect(Collectors.toList()));
     }
 
     public Offer toOffer() {
@@ -37,6 +40,7 @@ public record OfferDTO(
                 .isReserved(isReserved)
                 .isCompleted(isCompleted)
                 .offeredAt(offeredAt)
+                .reservations(reservations.stream().map(ObjectId::new).collect(Collectors.toList()))
                 .build();
     }
 
