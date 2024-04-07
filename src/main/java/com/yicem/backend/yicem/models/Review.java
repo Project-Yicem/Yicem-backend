@@ -11,16 +11,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 public class Review {
     @Id
-    @NonNull
     private String id;
 
-    @NonNull
     private String transactionId;
 
-    @NonNull
     private String comment;
 
-    @NonNull
     private float rating;
 
 }

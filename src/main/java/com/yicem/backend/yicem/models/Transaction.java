@@ -11,13 +11,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 public class Transaction {
     @Id
-    @NonNull
     private String id;
 
-    @NonNull
     private String buyerId;
 
-    @NonNull
     private String sellerId;
 
     //TODO: Implement other attributes
