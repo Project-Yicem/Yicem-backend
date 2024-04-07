@@ -1,43 +1,53 @@
 package com.yicem.backend.yicem.models;
 
 import lombok.*;
-import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Date;
 import java.util.List;
 
+@Document(collection = "offers")
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class Offer {
+    @Id
+    @NonNull
+    private String id;
 
-   private ObjectId id;
-   private String description;
-   private boolean isMysteryBox;
-   private float price;
-   private int itemCount;
-   private String offerName;
-   private List<String> categories;
-   private boolean isReserved;
-   private boolean isCompleted;
-   private Date offeredAt;
-   private List<ObjectId> reservations;
+    @NonNull
+    private String description;
 
-   @Builder
-   public Offer(ObjectId id, String description, boolean isMysteryBox, float price, int itemCount, String offerName,
-                List<String> categories, boolean isReserved, boolean isCompleted, Date offeredAt,
-                List<ObjectId> reservations) {
-      this.id = id;
-      this.description = description;
-      this.isMysteryBox = isMysteryBox;
-      this.price = price;
-      this.itemCount = itemCount;
-      this.offerName = offerName;
-      this.categories = categories;
-      this.isReserved = isReserved;
-      this.isCompleted = isCompleted;
-      this.offeredAt = offeredAt;
-      this.reservations = reservations;
-   }
+    @NonNull
+    private boolean isMysteryBox;
+
+    @NonNull
+    private float price;
+
+    @NonNull
+    private int itemCount;
+
+    @NonNull
+    private String offerName;
+
+
+    private List<String> categories;
+
+    @NonNull
+    private boolean isReserved;
+
+    @NonNull
+    private boolean isCompleted;
+
+    @NonNull
+    private Date offeredAt;
+
+    @NonNull
+    @DBRef
+    private List<Reservation> reservations;
+
 }

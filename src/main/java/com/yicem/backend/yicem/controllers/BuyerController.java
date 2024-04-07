@@ -1,91 +1,40 @@
 package com.yicem.backend.yicem.controllers;
 
-import com.yicem.backend.yicem.dtos.BuyerDTO;
-import com.yicem.backend.yicem.services.BuyerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.yicem.backend.yicem.models.Buyer;
+import com.yicem.backend.yicem.repositories.BuyerRepository;
+import com.yicem.backend.yicem.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/buyer")
 public class BuyerController {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(BuyerController.class);
-    private final BuyerService buyerService;
+    @Autowired
+    private UserRepository userRepository;
 
-    public BuyerController(BuyerService buyerService) {
-        this.buyerService = buyerService;
+    @Autowired
+    private BuyerRepository buyerRepository;
+
+    @GetMapping("/all")
+    public List<Buyer> getBuyers() {
+        return buyerRepository.findAll();
     }
 
-    @PostMapping("buyer")
-    @ResponseStatus(HttpStatus.CREATED)
-    public BuyerDTO postBuyer(@RequestBody BuyerDTO buyerDTO){
-        return buyerService.save(buyerDTO);
+    @DeleteMapping("/delete/{id}")
+    public String deleteBuyer(@PathVariable String id){
+        if (buyerRepository.existsById(id)) {
+            buyerRepository.deleteById(id);
+            userRepository.deleteById(id);
+            return "Deleted buyer";
+        }
+
+        return "Buyer does not exist";
     }
 
-    @PostMapping("buyers")
-    @ResponseStatus(HttpStatus.CREATED)
-    public List<BuyerDTO> postBuyers(@RequestBody List<BuyerDTO> buyers) {
-        return buyerService.saveAll(buyers);
-    }
 
-    @GetMapping("buyers")
-    public List<BuyerDTO> getBuyers() {
-        return buyerService.findAll();
-    }
 
-    @GetMapping("buyer/{id}")
-    public ResponseEntity<BuyerDTO> getBuyer(@PathVariable String id) {
-        BuyerDTO BuyerDTO = buyerService.findOne(id);
-        if (BuyerDTO == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        return ResponseEntity.ok(BuyerDTO);
-    }
-
-    @GetMapping("buyers/{ids}")
-    public List<BuyerDTO> getBuyers(@PathVariable String ids) {
-        List<String> listIds = List.of(ids.split(","));
-        return buyerService.findAll(listIds);
-    }
-
-    @GetMapping("buyers/count")
-    public Long getCount() {
-        return buyerService.count();
-    }
-
-    @DeleteMapping("buyer/{id}")
-    public Long deleteBuyer(@PathVariable String id) {
-        return buyerService.delete(id);
-    }
-
-    @DeleteMapping("buyers/{ids}")
-    public Long deleteBuyers(@PathVariable String ids) {
-        List<String> listIds = List.of(ids.split(","));
-        return buyerService.delete(listIds);
-    }
-
-    @DeleteMapping("buyers")
-    public Long deleteBuyers() {
-        return buyerService.deleteAll();
-    }
-
-    @PutMapping("buyer")
-    public BuyerDTO putBuyer(@RequestBody BuyerDTO BuyerDTO) {
-        return buyerService.update(BuyerDTO);
-    }
-
-    @PutMapping("buyers")
-    public Long putBuyer(@RequestBody List<BuyerDTO> buyers) {
-        return buyerService.update(buyers);
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public final Exception handleAllExceptions(RuntimeException e) {
-        LOGGER.error("Internal server error.", e);
-        return e;
-    }
 }

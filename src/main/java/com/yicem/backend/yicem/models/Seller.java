@@ -1,43 +1,52 @@
 package com.yicem.backend.yicem.models;
 
 import lombok.*;
-import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
 
+@Document(collection = "sellers")
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
-public class Seller extends User {
+@AllArgsConstructor
+@RequiredArgsConstructor
+public class Seller {
+    @Id
+    @NonNull
+    private String id;
 
+    @NonNull
+    private String username;
+
+    @NonNull
     private boolean isApproved;
-    private String address;
-    private String phone;
-    private String businessName;
-    private String workingHours;
-    private String locationCoordinates;
-    private float reservationTimeout;
-    private List<ObjectId> reviews;
-    private List<ObjectId> currentOffers;
-    private List<ObjectId> pastTransactions;
 
-    @Builder
-    public Seller (ObjectId id, String username, String email, String password, boolean isApproved, String address,
-                   String phone, String businessName, String workingHours, String locationCoordinates,
-                   float reservationTimeout, List<ObjectId> reviews, List<ObjectId> currentOffers,
-                   List<ObjectId> pastTransactions) {
-        super(id, username, email, password);
-        this.isApproved = isApproved;
-        this.address = address;
-        this.phone = phone;
-        this.businessName = businessName;
-        this.workingHours = workingHours;
-        this.locationCoordinates = locationCoordinates;
-        this.reservationTimeout = reservationTimeout;
-        this.reviews = reviews;
-        this.currentOffers = currentOffers;
-        this.pastTransactions = pastTransactions;
-    }
+    @NonNull
+    private String address;
+
+    @NonNull
+    private String phone;
+
+    @NonNull
+    private String businessName;
+
+    @NonNull
+    private String workingHours;
+
+    @NonNull
+    private String locationCoordinates;
+
+    @NonNull
+    private float reservationTimeout;
+
+    private List<String> reviews;
+
+    private List<String> currentOffers;
+
+    private List<String> pastTransactions;
 
 }
+
+

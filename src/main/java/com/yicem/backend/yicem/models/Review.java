@@ -1,26 +1,26 @@
 package com.yicem.backend.yicem.models;
 
 import lombok.*;
-import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document(collection = "reviews")
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
+@AllArgsConstructor
 public class Review {
+    @Id
+    @NonNull
+    private String id;
 
-    private ObjectId id;
-    private ObjectId buyerId;
-    private ObjectId sellerId;
+    @NonNull
+    private String transactionId;
+
+    @NonNull
     private String comment;
+
+    @NonNull
     private float rating;
 
-    @Builder
-    public Review(ObjectId id, ObjectId buyerId, ObjectId sellerId, String comment, float rating) {
-        this.id = id;
-        this.buyerId = buyerId;
-        this.sellerId = sellerId;
-        this.comment = comment;
-        this.rating = rating;
-    }
 }

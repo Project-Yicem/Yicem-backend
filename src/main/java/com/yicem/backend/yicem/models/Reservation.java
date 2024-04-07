@@ -1,5 +1,16 @@
 package com.yicem.backend.yicem.models;
 
-public class Reservation {
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+@Document(collection = "reservations")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Reservation {
+    @Id
+    @NonNull
+    private String id;
 }

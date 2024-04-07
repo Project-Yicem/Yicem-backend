@@ -1,27 +1,19 @@
 package com.yicem.backend.yicem.models;
 
 import lombok.*;
-import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
-
+@Document(collection = "buyers")
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
-public class Buyer extends User {
-    private List<ObjectId> reviews;
-    private List<ObjectId> pastTransactions;
-    private List<ObjectId> supportReports;
-    private List<ObjectId> favoriteSellers;
-    //TODO: Achievement attribute eklenecek.
-    @Builder
-    public Buyer (ObjectId id, String username, String email, String password, List<ObjectId> reviews,
-                  List<ObjectId> pastTransactions, List<ObjectId> supportReports, List<ObjectId> favoriteSellers) {
-        super(id, username, email, password);
-        this.reviews = reviews;
-        this.pastTransactions = pastTransactions;
-        this.supportReports = supportReports;
-        this.favoriteSellers = favoriteSellers;
-    }
+@AllArgsConstructor
+public class Buyer {
+    @Id
+    private String id;
+
+    @NonNull
+    private String username;
+
 }
