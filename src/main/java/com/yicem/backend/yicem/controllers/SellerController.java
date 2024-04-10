@@ -42,19 +42,30 @@ public class SellerController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public String deleteSeller(@PathVariable String id){
-        if (sellerRepository.existsById(id)) {
+    public ResponseEntity<?> deleteSeller(@PathVariable String id){
+        Optional<Seller> optionalSeller = sellerRepository.findById(id);
+        if (optionalSeller.isPresent()) {
+            Seller seller = optionalSeller.get();
+            // delete offers of seller
+            List<String> currentOffers = seller.getCurrentOffers();
+            for (String offerID : currentOffers) {
+                offerRepository.deleteById(offerID);
+            }
+            //TODO: delete reviews of seller
+            //TODO: delete pastTransactions of seller
+            // delete seller
             sellerRepository.deleteById(id);
             userRepository.deleteById(id);
-            return "Deleted seller";
+            return new ResponseEntity<>("Deleted seller", HttpStatus.OK);
+            
         }
 
-        return "Seller does not exist";
+        return new ResponseEntity<>("Seller does not exist", HttpStatus.OK);
     }
 
 
     @PostMapping("/{seller}/addOffer")
-    public ResponseEntity addOffer(@RequestBody Offer offer, @PathVariable("seller") String sellerID) {
+    public ResponseEntity<?> addOffer(@RequestBody Offer offer, @PathVariable("seller") String sellerID) {
         // hold seller optional
         Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
         // check its existence
@@ -68,6 +79,7 @@ public class SellerController {
             // add offer id and save seller
             seller.getCurrentOffers().add(offer.getId());
             sellerRepository.save(seller);
+            offerRepository.save(offer);
             return new ResponseEntity<String>("Offer added successfully.",HttpStatus.OK);
         }
         else{
@@ -77,22 +89,86 @@ public class SellerController {
     
     
 
-    @PostMapping("/{seller}/modifyOffer")
-    public String modifyOffer(@RequestBody String entity) {
-        //TODO: process POST request
-        
-        return entity;
+    @PostMapping("/{seller}/modifyOffer/{offerID}")
+    public ResponseEntity<?> modifyOffer(@RequestBody Offer offerInfo, @PathVariable("seller") String sellerID,
+     @PathVariable("offerID") String offerID) {
+        Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
+        //Validate seller existence
+        if (sellerOptional.isPresent()) {
+            Seller seller = sellerOptional.get();
+            Optional<Offer> offerOptional = offerRepository.findById(offerID);
+            // validate offer existence
+            if (offerOptional.isPresent()) {
+                Offer offer = offerOptional.get();
+                offer.updateInfo(offerInfo);
+                offerRepository.save(offer);
+                return new ResponseEntity<>("Offer successfully updated.", HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>("Specified offer not found.", HttpStatus.BAD_REQUEST);
+            }
+        }
+        else{
+            return new ResponseEntity<>("Specified seller not found.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @DeleteMapping("/{seller}/modifyOffer/{offerID}/deleteOffer")
+    public ResponseEntity<?> deleteOffer(@PathVariable("seller") String sellerID,
+     @PathVariable("offerID") String offerID) {
+        Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
+        // Validate seller existence
+        if (sellerOptional.isPresent()) {
+            Seller seller = sellerOptional.get();
+            Optional<Offer> offerOptional = offerRepository.findById(offerID);
+            // validate offer existence
+            if (offerOptional.isPresent()) {
+                offerRepository.deleteById(offerID);
+                // update seller's current offer list and save to database
+                seller.getCurrentOffers().remove(offerID);
+                sellerRepository.save(seller);
+                return new ResponseEntity<>("Offer successfully deleted.", HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>("Specified offer not found.", HttpStatus.BAD_REQUEST);
+            }
+        }
+        else{
+            return new ResponseEntity<>("Specified seller not found.", HttpStatus.BAD_REQUEST);
+        }
     }
     
     
+    
     @GetMapping("/{seller}/offers")
-    public List<String> getOffers(@PathVariable("seller") String sellerUserName) {
-        if (sellerRepository.existsByUsername(sellerUserName)) {
-            return sellerRepository.findByUsername(sellerUserName).get().getCurrentOffers();
-        }
+    public ResponseEntity<?> getOffers(@PathVariable("seller") String sellerID) {
+        Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
+        //Validate seller existence
+        if (sellerOptional.isPresent()) {
+            
+            Seller seller = sellerOptional.get();
+            
+            if (seller.getCurrentOffers() != null) {
+                                
+                List<String> currentOfferIDs = seller.getCurrentOffers();
+                List<Offer> currentOffers = new ArrayList<Offer>();
+                
+                for (String offerID : currentOfferIDs) {
+                    Optional<Offer> optionalOffer = offerRepository.findById(offerID);
+                    if (optionalOffer.isPresent()) {
+                        Offer offer = optionalOffer.get();
+                        currentOffers.add(offer);
+                    }
+                }    
+
+                return new ResponseEntity<>(currentOffers, HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<>("Offer list is empty.", HttpStatus.OK);
+            }
+        }       
         else{
-            System.err.println("A seller does not exist with the given username");
-            return null;
+            return new ResponseEntity<>("Specified seller does not exist.", HttpStatus.OK);
         }
     }
     
