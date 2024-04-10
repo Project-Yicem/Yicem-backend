@@ -1,6 +1,9 @@
 package com.yicem.backend.yicem.models;
 
 import lombok.*;
+
+import java.util.Date;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,5 +20,11 @@ public class Transaction {
 
     private String sellerId;
 
-    //TODO: Implement other attributes
+    private String itemName;
+
+    private float price;
+
+    private Review review;
+
+    private Date transactionDate;
 }
