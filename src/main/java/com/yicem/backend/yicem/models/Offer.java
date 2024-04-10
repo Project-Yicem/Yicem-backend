@@ -63,4 +63,24 @@ public class Offer {
         this.categories = newOffer.categories;
     }
 
+    /**
+     * Decrement the offer's available item count by 1 and update isCompleted flag
+     * @return true if updated itemCount is valid, false otherwise
+     */
+    public boolean decrementItemCount(){
+        this.itemCount -= 1;
+        if (itemCount == 0) {
+            this.isCompleted = true;
+            return true;
+        }
+        else if(itemCount > 0){
+            this.isCompleted = false;
+            return true;
+        }
+        else{
+            System.err.println("ERROR: Item count is negative.");
+            return false;
+        }
+    }
+
 }
