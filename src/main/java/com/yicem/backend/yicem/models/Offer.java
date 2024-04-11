@@ -50,4 +50,14 @@ public class Offer {
     @DBRef
     private List<Reservation> reservations;
 
+    public void updateInfo(Offer newOffer){
+        // id, isReserved, isCompleted, offeredAt, and reservations are not updated
+        this.description = newOffer.description;
+        this.isMysteryBox = newOffer.isMysteryBox;
+        this.price = newOffer.price;
+        this.itemCount = newOffer.itemCount;
+        this.offerName = newOffer.offerName;
+        this.categories = newOffer.categories;
+    }
+
 }
