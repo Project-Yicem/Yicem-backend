@@ -27,4 +27,14 @@ public class Transaction {
     private Review review;
 
     private Date transactionDate;
+
+    public Transaction(String buyerId, String sellerId, String itemName, float price){
+        this.buyerId = buyerId;
+        this.sellerId = sellerId;
+        this.itemName = itemName;
+        this.price = price;
+        // initially set values
+        this.review = null;
+        this.transactionDate = new Date();
+    }
 }

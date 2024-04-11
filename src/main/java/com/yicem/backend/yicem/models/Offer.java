@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -53,6 +54,59 @@ public class Offer {
     @DBRef
     private List<Reservation> reservations;
 
+    public Offer(Offer newOffer){
+        this.description = newOffer.description;
+        this.isMysteryBox = newOffer.isMysteryBox;
+        this.price = newOffer.price;
+        this.itemCount = newOffer.itemCount;
+        this.offerName = newOffer.offerName;
+        if (newOffer.categories == null) {
+            this.categories = new ArrayList<String>();
+            this.categories.add("noCategory");
+        }
+        else{
+            if (newOffer.categories.isEmpty()) {
+                this.categories = newOffer.categories;
+                this.categories.add("noCategory");
+            }
+            else{
+                this.categories = newOffer.categories;
+            }
+        }
+        // set values for new offers
+        this.isReserved = false;
+        this.isCompleted = false;
+        this.offeredAt = new Date();
+        this.reservations = new ArrayList<Reservation>();
+    }
+
+    public Offer(String description, boolean isMysteryBox, float price,
+     int itemCount, String offerName, List<String> categories ){
+        this.description = description;
+        this.isMysteryBox = isMysteryBox;
+        this.price = price;
+        this.itemCount = itemCount;
+        this.offerName = offerName;
+        if (categories == null) {
+            this.categories = new ArrayList<String>();
+            this.categories.add("noCateegory");
+        }
+        else{
+            if (categories.isEmpty()) {
+                this.categories = categories;
+                this.categories.add("noCateegory");
+            }
+            else{
+                this.categories = categories;
+            }
+        }
+        // set values for new offers
+        this.isReserved = false;
+        this.isCompleted = false;
+        this.offeredAt = new Date();
+        this.reservations = new ArrayList<Reservation>();
+    }
+
     public void updateInfo(Offer newOffer){
         // id, isReserved, isCompleted, offeredAt, and reservations are not updated
         this.description = newOffer.description;
@@ -64,7 +118,7 @@ public class Offer {
     }
 
     /**
-     * Decrement the offer's available item count by 1 and update isCompleted flag
+     * Decrement the offer's available item count by 1 and update isCompleted
      * @return true if updated itemCount is valid, false otherwise
      */
     public boolean decrementItemCount(){
