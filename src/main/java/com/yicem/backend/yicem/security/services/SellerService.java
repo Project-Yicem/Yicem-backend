@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +54,7 @@ public class SellerService {
                 offerRepository.deleteById(offerID);
             }
             //TODO: delete reviews of seller
-            //TODO: delete pastTransactions of seller
+            //TODO: delete pastTransactions of seller (?) probably not needed
             // delete seller
             sellerRepository.deleteById(id);
             userRepository.deleteById(id);
@@ -61,12 +62,13 @@ public class SellerService {
             
         }
 
-        return new ResponseEntity<>("Seller does not exist", HttpStatus.OK);
+        return new ResponseEntity<>("Seller does not exist", HttpStatus.NOT_FOUND);
     }
 
     public ResponseEntity<?> addOffer(Offer offer, String sellerID){
         // hold seller optional
         Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
+        System.out.println(sellerOptional.get().getId());
         // check its existence
         if (sellerOptional.isPresent()) {
             // put in Seller type variable to be able to save new state to database after operations
@@ -85,7 +87,7 @@ public class SellerService {
             return new ResponseEntity<String>("Offer added successfully.",HttpStatus.OK);
         }
         else{
-            return new ResponseEntity<>("Seller not found.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Seller not found.", HttpStatus.NOT_FOUND);
         }
     }
 
@@ -104,11 +106,11 @@ public class SellerService {
                 return new ResponseEntity<>("Offer successfully updated.", HttpStatus.OK);
             }
             else{
-                return new ResponseEntity<>("Specified offer not found.", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Specified offer not found.", HttpStatus.NOT_FOUND);
             }
         }
         else{
-            return new ResponseEntity<>("Specified seller not found.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Specified seller not found.", HttpStatus.NOT_FOUND);
         }
     }
 
@@ -127,11 +129,11 @@ public class SellerService {
                 return new ResponseEntity<>("Offer successfully deleted.", HttpStatus.OK);
             }
             else{
-                return new ResponseEntity<>("Specified offer not found.", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Specified offer not found.", HttpStatus.NOT_FOUND);
             }
         }
         else{
-            return new ResponseEntity<>("Specified seller not found.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Specified seller not found.", HttpStatus.NOT_FOUND);
         }
     }
 
@@ -162,27 +164,33 @@ public class SellerService {
             }
         }       
         else{
-            return new ResponseEntity<>("Specified seller does not exist.", HttpStatus.OK);
+            return new ResponseEntity<>("Specified seller does not exist.", HttpStatus.NOT_FOUND);
         }
     }
 
     public ResponseEntity<?> markOfferSold(String sellerID, String offerID){
-        System.out.println("Inside the method.");
         Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
         // Validate seller existence
         if (sellerOptional.isPresent()) {
             Seller seller = sellerOptional.get();
+            System.out.println("markOfferSold: Seller validated.");
             Optional<Offer> offerOptional = offerRepository.findById(offerID);
             // validate offer existence
             if (offerOptional.isPresent()) {
                 Offer offer = offerOptional.get();
+                System.out.println("markOfferSold: Offer validated.");
                 // validate reservation exists
                 List<Reservation> reservations = offer.getReservations();
-                if (reservations != null) {
+                if (reservations != null && !reservations.isEmpty()) {
+                    // Check null condition on queue's buyer
+                    if (reservations.get(0) == null) {
+                        return new ResponseEntity<>("The first element of the reservation queue is null.", HttpStatus.CONFLICT);
+                    }
                     Optional<Buyer> buyerOptional = buyerRepository.findById(reservations.get(0).getId());
                     // validate buyer exists
                     if (buyerOptional.isPresent()) {
                         Buyer buyer = buyerOptional.get();
+                        System.out.println("markOfferSold: Buyer validated.");
                         // update offer count
                         if(offer.decrementItemCount()){
                             // create new transaction object
@@ -193,11 +201,14 @@ public class SellerService {
                             // create past transaction list if it is null
                             if (seller.getPastTransactions() == null) {
                                 seller.setPastTransactions(new ArrayList<String>());
+                                System.out.println("markOfferSold: New past transaction list created for seller.");
                             }
                             // update seller's past transaction list
                             seller.getPastTransactions().add(transaction.getId());
                             // update offer's queue
+                            System.out.println("Queue before removal: "+reservations);
                             reservations.remove(0);
+                            System.out.println(reservations);
                             // check if there are still offers available
                             if (offer.isCompleted()) {
                                 // no more offers, have to delete offer from seller's current offers list
@@ -209,6 +220,7 @@ public class SellerService {
                             else{
                                 // there are more offers available
                                 offerRepository.save(offer);
+                                sellerRepository.save(seller);
                                 return new ResponseEntity<>("Available offer count successfully decremented.", HttpStatus.OK);
                             }
                         }
@@ -219,22 +231,44 @@ public class SellerService {
                     }
                     else{
                         System.err.println("First buyer from the queue does not exist.");
-                        return new ResponseEntity<>("First buyer from the queue does not exist.", HttpStatus.BAD_REQUEST);
+                        return new ResponseEntity<>("First buyer from the queue does not exist.", HttpStatus.NOT_FOUND);
                     }
                 }
                 else{
                     System.err.println("No reservations have been made for this item yet.");
+                    System.err.println("Reservation queue: " + reservations);
                     return new ResponseEntity<>("No reservations have been made for this item yet.", HttpStatus.EXPECTATION_FAILED);
                 }
             }
             else{
                 System.err.println("Specified offer not found.");
-                return new ResponseEntity<>("Specified offer not found.", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Specified offer not found.", HttpStatus.NOT_FOUND);
             }
         }
         else{
             System.err.println("Specified seller not found.");
-            return new ResponseEntity<>("Specified seller not found.", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Specified seller not found.", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> getHistory(String sellerID){
+        Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
+        //Validate seller existence
+        if (sellerOptional.isPresent()) {
+            Seller seller = sellerOptional.get();
+            List<String> history = seller.getPastTransactions();
+            
+            if (!history.isEmpty() && history != null) {
+                return new ResponseEntity<>(history, HttpStatus.OK);
+            }
+            else{
+                System.err.println("Past transaction list: " + history);
+                return new ResponseEntity<>("Past transaction list is either empty or null.", HttpStatus.EXPECTATION_FAILED);
+            }
+            
+        }       
+        else{
+            return new ResponseEntity<>("Specified seller does not exist.", HttpStatus.NOT_FOUND);
         }
     }
 }
