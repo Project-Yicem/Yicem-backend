@@ -20,6 +20,9 @@ public class Offer {
     private String id;
 
     @NonNull
+    private String sellerId;
+
+    @NonNull
     private String description;
 
     @NonNull

@@ -1,12 +1,16 @@
 package com.yicem.backend.yicem.services;
 
 import com.yicem.backend.yicem.models.*;
+import com.yicem.backend.yicem.payload.response.MessageResponse;
 import com.yicem.backend.yicem.repositories.*;
+import com.yicem.backend.yicem.security.jwt.JwtUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +21,10 @@ import java.util.Optional;
 public class BuyerService {
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private BuyerRepository buyerRepository;
+
     @Autowired
     private SellerRepository sellerRepository;
 
@@ -30,6 +36,21 @@ public class BuyerService {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
+    private JwtUtils jwtUtils;
+
+    private String parseJwt(HttpHeaders header) {
+        if(header.get("Authorization") != null){
+            String token = header.get("Authorization").get(0);
+
+            if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
+                return token.substring(7, token.length());
+            }
+        }
+
+        //TODO add error handling mechanism for null tokens
+        return null;
+    }
 
     public List<Seller> listAllApproved(){
         return sellerRepository.findByIsApproved(true);
@@ -61,14 +82,20 @@ public class BuyerService {
         }
     }
 
-    public ResponseEntity<Object> reserveTheOffer(String buyerId, String businessId, String offerId, String timeSlot){
+    public ResponseEntity<Object> reserveTheOffer(HttpHeaders header, String offerId, String timeSlot){
+        String token = parseJwt(header);
+        if(token == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
+
+        String buyerId = jwtUtils.getIdFromJwtToken(token);
         Optional<Offer> offerInstance = offerRepository.findById(offerId);
 
         if(offerInstance.isPresent()){
             Offer offer = offerInstance.get();
             Reservation newReservation = new Reservation();
             newReservation.setBuyerId(buyerId);
-            newReservation.setSellerId(businessId);
+            newReservation.setSellerId(offer.getSellerId());
             newReservation.setTimeSlot(timeSlot);
             offer.getReservations().add(newReservation);
             reservationRepository.save(newReservation);

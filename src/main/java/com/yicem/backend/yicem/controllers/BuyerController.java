@@ -9,6 +9,7 @@ import com.yicem.backend.yicem.repositories.UserRepository;
 import com.yicem.backend.yicem.services.BuyerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,6 @@ import java.util.List;
 @RequestMapping("/api/buyer")
 @RequiredArgsConstructor
 public class BuyerController {
-
     @Autowired
     private UserRepository userRepository;
 
@@ -77,9 +77,9 @@ public class BuyerController {
     //@PostMapping("/business/{businessId}/report")
 
 
-    @PostMapping("/{buyerId}/{businessId}/{offerId}/reserve")
-    public ResponseEntity<Object> reserveTheOffer(@PathVariable String buyerId, @PathVariable String businessId, @PathVariable String offerId, @RequestParam String timeSlot){
-        return buyerService.reserveTheOffer(buyerId, businessId, offerId, timeSlot);
+    @PostMapping("/reserve/{offerId}")
+    public ResponseEntity<Object> reserveTheOffer(@RequestHeader HttpHeaders header, @PathVariable String offerId, @RequestParam String timeSlot){
+        return buyerService.reserveTheOffer(header, offerId, timeSlot);
     }
 
 
