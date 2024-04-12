@@ -13,4 +13,10 @@ public class Reservation {
     @Id
     @NonNull
     private String id;
+
+    private String buyerId;
+
+    private String sellerId;
+
+    private String timeSlot;
 }

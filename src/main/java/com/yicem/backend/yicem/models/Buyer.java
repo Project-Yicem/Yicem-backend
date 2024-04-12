@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "buyers")
@@ -21,6 +22,7 @@ public class Buyer extends User{
 
     private List<Seller> favoriteSellers;
 
+    //TODO add email and password to the constructor
     public Buyer(String id, String username){
         super(username, "", "");
         this.setId(id);

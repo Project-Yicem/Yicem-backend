@@ -31,6 +31,16 @@ public class BuyerController {
 
     private final BuyerService buyerService;
 
+    /*@PutMapping("/update-username")
+    public ResponseEntity<?> updateUsername(@RequestBody String newUsername){
+        return buyerService.changeUsername(newUsername);
+    }
+
+    @PutMapping("/update-password")
+    public ResponseEntity<?> updatePassword(@RequestBody String newPassword){
+        return buyerService.changePassword(newPassword);
+    }*/
+
     @GetMapping("/all")
     public List<Buyer> getBuyers() {
         return buyerRepository.findAll();
@@ -47,47 +57,48 @@ public class BuyerController {
         return "Buyer does not exist";
     }
 
-    @GetMapping("/businesses")
+    @GetMapping("/view-businesses")
     public List<Seller> getSellers(){
         return buyerService.listAllApproved();
     }
 
     @GetMapping("/business/{businessId}/offers")
     public ResponseEntity<Object> getBusinessesOffers(@PathVariable String businessId){
-        return buyerService.listAllOffersOfBusiness(businessId);
+        return buyerService.listAllOfferIdsOfBusiness(businessId);
     }
 
 
-    //@GetMapping("/business/{businessId}/reviews")
+    @GetMapping("/business/{businessId}/reviews")
+    public ResponseEntity<Object> getBusinessReviews(@PathVariable String businessId){
+        return buyerService.listAllReviewIdsOfBusiness(businessId);
+    }
 
-
+    //TODO add report endpoint
     //@PostMapping("/business/{businessId}/report")
 
 
-    //@PostMapping("/business/{businessId}/{offerId}/reserve")
+    @PostMapping("/{buyerId}/{businessId}/{offerId}/reserve")
+    public ResponseEntity<Object> reserveTheOffer(@PathVariable String buyerId, @PathVariable String businessId, @PathVariable String offerId, @RequestParam String timeSlot){
+        return buyerService.reserveTheOffer(buyerId, businessId, offerId, timeSlot);
+    }
 
-    /*
-        +GET /customer-api/businesses: Backend sends the list of all APPROVED businesses (not the unapproved businesses!!!). A business has fields: name, logo, opening time, closing time, location (latitude-longitude), rating, address (text), phone number etc.
 
-        GET /customer-api/business/{businessId}/offers: Frontend gets the current offers of a business with {businessId}. An offer has the following fields: name, price, list of available hours to pick up the offer, add more fields as needed
+    @GetMapping("/{buyerId}/purchases")
+    public ResponseEntity<?> getPurchases(@PathVariable String buyerId){
+        return buyerService.getPurchases(buyerId);
+    }
 
-        GET /customer-api/business/{businessId}/reviews: Frontend gets the reviews of a business with {businessId}. A review has a text, username, date and a rating.
+    //TODO add review endpoint
+    /*@PostMapping("/{buyerId}/{transactionId}/review")*/
 
-        POST /customer-api/business/{businessId}/report: Frontend posts a report to backend. A report is associated with a business (with {businessId}). A report has a text, date and a username.
+    @PostMapping("/{buyerId}/favorite/{businessId}")
+    public ResponseEntity<?> addFavorite(@PathVariable String buyerId, @PathVariable String businessId){
+        return buyerService.addToFavorites(buyerId, businessId);
+    }
 
-        POST /customer-api/business/{businessId}/{offerId}/reserve: Reserve the offer {offerId} of the business {businessId} with a picked timeslot. What is sent to backend: timeslot, username.
-
-        POST /customer-api/user/update/: Update a field (password or username) of the user that is logged in. Frontend sends the JWT token along with the field to be updated. (Backend should except two fields, password and username, but only one of the fields will be full. For example, if the user updates username, the password field will be empty/null and vice versa).
-
-        GET /customer-api/user/purchases: Backend returns the list of purchases of the user. A purchase has the following fields: business name, purchased item name, date, price
-
-        POST /customer-api/user/{purchaseId}/review: Frontend posts a review. A review has fields: text, date, username, rating and the name of the business that the review is associated with.
-
-        POST /customer-api/user/favorite/{businessId}: Add the business with {businessId} to the user’s favorites.
-
-        GET /customer-api/user/favorites/: Get the user’s favorite businesses.
-
-        POST /customer-api/user/register: Register a user. The fields that are sent are: username, email, password
-     */
+    @GetMapping("/{buyerId}/favorites")
+    public ResponseEntity<?> getFavorites(@PathVariable String buyerId){
+        return buyerService.getFavorites(buyerId);
+    }
 
 }
