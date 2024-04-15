@@ -22,9 +22,8 @@ public class Buyer extends User{
 
     private List<Seller> favoriteSellers;
 
-    //TODO add email and password to the constructor
-    public Buyer(String id, String username){
-        super(username, "", "");
+    public Buyer(String id, String username, String email, String password){
+        super(username, email, password);
         this.setId(id);
     }
 

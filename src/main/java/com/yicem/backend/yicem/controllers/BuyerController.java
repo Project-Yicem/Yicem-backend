@@ -31,15 +31,15 @@ public class BuyerController {
 
     private final BuyerService buyerService;
 
-    /*@PutMapping("/update-username")
-    public ResponseEntity<?> updateUsername(@RequestBody String newUsername){
-        return buyerService.changeUsername(newUsername);
+    @PutMapping("/update-username")
+    public ResponseEntity<?> updateUsername(@RequestHeader HttpHeaders header, @RequestBody String newUsername){
+        return buyerService.changeUsername(header, newUsername);
     }
 
     @PutMapping("/update-password")
-    public ResponseEntity<?> updatePassword(@RequestBody String newPassword){
-        return buyerService.changePassword(newPassword);
-    }*/
+    public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header, @RequestBody String newPassword){
+        return buyerService.changePassword(header, newPassword);
+    }
 
     @GetMapping("/all")
     public List<Buyer> getBuyers() {
@@ -73,8 +73,10 @@ public class BuyerController {
         return buyerService.listAllReviewIdsOfBusiness(businessId);
     }
 
-    //TODO add report endpoint
-    //@PostMapping("/business/{businessId}/report")
+    @PostMapping("/business/{businessId}/report")
+    public ResponseEntity<?> reportTheBusiness(@PathVariable String businessId, @RequestParam String reportDescription){
+        return buyerService.reportBusiness(businessId, reportDescription);
+    }
 
 
     @PostMapping("/reserve/{offerId}")
@@ -83,22 +85,25 @@ public class BuyerController {
     }
 
 
-    @GetMapping("/{buyerId}/purchases")
-    public ResponseEntity<?> getPurchases(@PathVariable String buyerId){
-        return buyerService.getPurchases(buyerId);
+    @GetMapping("/purchases")
+    public ResponseEntity<?> getPurchases(@RequestHeader HttpHeaders header){
+        return buyerService.getPurchases(header);
     }
 
-    //TODO add review endpoint
-    /*@PostMapping("/{buyerId}/{transactionId}/review")*/
-
-    @PostMapping("/{buyerId}/favorite/{businessId}")
-    public ResponseEntity<?> addFavorite(@PathVariable String buyerId, @PathVariable String businessId){
-        return buyerService.addToFavorites(buyerId, businessId);
+    @PostMapping("/{transactionId}/review")
+    public ResponseEntity<?> reviewTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String transactionId, @RequestParam String comment, @RequestParam float rating){
+        return buyerService.reviewBusiness(header, transactionId, comment, rating);
     }
 
-    @GetMapping("/{buyerId}/favorites")
-    public ResponseEntity<?> getFavorites(@PathVariable String buyerId){
-        return buyerService.getFavorites(buyerId);
+
+    @PostMapping("/favorite/{businessId}")
+    public ResponseEntity<?> addFavorite(@RequestHeader HttpHeaders header, @PathVariable String businessId){
+        return buyerService.addToFavorites(header, businessId);
+    }
+
+    @GetMapping("/favorites")
+    public ResponseEntity<?> getFavorites(@RequestHeader HttpHeaders header){
+        return buyerService.getFavorites(header);
     }
 
 }

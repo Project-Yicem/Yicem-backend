@@ -37,6 +37,12 @@ public class BuyerService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    @Autowired
+    private ReportRepository reportRepository;
+
     private JwtUtils jwtUtils;
 
     private String parseJwt(HttpHeaders header) {
@@ -48,7 +54,6 @@ public class BuyerService {
             }
         }
 
-        //TODO add error handling mechanism for null tokens
         return null;
     }
 
@@ -61,8 +66,8 @@ public class BuyerService {
         Optional<Seller> sellerInstance = sellerRepository.findById(businessId);
         if(sellerInstance.isPresent()){
             Seller seller = sellerInstance.get();
-            //TODO write helper methods for getting offers from ids
-            return ResponseEntity.ok(seller.getCurrentOffers());
+            List<Offer> res = getOffersFromTheirIds(seller.getCurrentOffers());
+            return ResponseEntity.ok(res);
         }
         else{
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Business is not found");
@@ -70,11 +75,21 @@ public class BuyerService {
 
     }
 
+    public List<Offer> getOffersFromTheirIds(List<String> ids){
+        List<Offer> offerList = new ArrayList<>();
+        for(String id : ids){
+            Offer offer = offerRepository.findById(id).get();
+            offerList.add(offer);
+        }
+
+        return offerList;
+    }
+
+
     public ResponseEntity<Object> listAllReviewIdsOfBusiness(String businessId){
         Optional<Seller> sellerInstance = sellerRepository.findById(businessId);
         if(sellerInstance.isPresent()){
             Seller seller = sellerInstance.get();
-            //TODO write helper methods for getting reviews from ids
             return ResponseEntity.ok(seller.getReviews());
         }
         else{
@@ -108,7 +123,14 @@ public class BuyerService {
         }
     }
 
-    public ResponseEntity<?> getPurchases(String buyerId){
+    public ResponseEntity<?> getPurchases(HttpHeaders header){
+        String token = parseJwt(header);
+        if(token == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
+
+        String buyerId = jwtUtils.getIdFromJwtToken(token);
+
         Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
         if(buyerInstance.isPresent()){
@@ -121,23 +143,66 @@ public class BuyerService {
         }
     }
 
-    public ResponseEntity<?> changeUsername(User user, String newUsername){
-        user.setUsername(newUsername);
+    public ResponseEntity<?> changeUsername(HttpHeaders header, String newUsername){
+        String token = parseJwt(header);
+        if(token == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
 
-        userRepository.save(user);
+        String userId = jwtUtils.getIdFromJwtToken(token);
 
-        return ResponseEntity.ok("Username changed");
+        Optional<User> userInstance = userRepository.findById(userId);
+        Optional<Buyer> buyerInstance = buyerRepository.findById(userId);
+        if(userInstance.isPresent()){
+            User user = userInstance.get();
+            Buyer buyer = buyerInstance.get();
+
+            user.setUsername(newUsername);
+            buyer.setUsername(newUsername);
+            userRepository.save(user);
+            buyerRepository.save(buyer);
+
+            return ResponseEntity.ok("Username changed");
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is not found");
+        }
     }
 
-    public ResponseEntity<?> changePassword(User user, String newPassword){
-        user.setPassword(newPassword);
+    public ResponseEntity<?> changePassword(HttpHeaders header, String newPassword){
+        String token = parseJwt(header);
+        if(token == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
 
-        userRepository.save(user);
+        String userId = jwtUtils.getIdFromJwtToken(token);
 
-        return ResponseEntity.ok("Password changed");
+        Optional<User> userInstance = userRepository.findById(userId);
+        Optional<Buyer> buyerInstance = buyerRepository.findById(userId);
+        if(userInstance.isPresent()){
+            User user = userInstance.get();
+            Buyer buyer = buyerInstance.get();
+
+            user.setPassword(newPassword);
+            buyer.setPassword(newPassword);
+            userRepository.save(user);
+            buyerRepository.save(buyer);
+
+            return ResponseEntity.ok("Password changed");
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is not found");
+        }
     }
 
-    public ResponseEntity<?> getFavorites(String buyerId){
+    public ResponseEntity<?> getFavorites(HttpHeaders header){
+        String token = parseJwt(header);
+        if(token == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
+
+        String buyerId = jwtUtils.getIdFromJwtToken(token);
+
         Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
         if(buyerInstance.isPresent()){
@@ -150,7 +215,14 @@ public class BuyerService {
         }
     }
 
-    public ResponseEntity<?> addToFavorites(String buyerId, String businessId){
+    public ResponseEntity<?> addToFavorites(HttpHeaders header, String businessId){
+        String token = parseJwt(header);
+        if(token == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
+
+        String buyerId = jwtUtils.getIdFromJwtToken(token);
+
         Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
         if(buyerInstance.isPresent()){
@@ -179,4 +251,62 @@ public class BuyerService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Buyer is not found");
         }
     }
+
+    public ResponseEntity<?> reviewBusiness(HttpHeaders header, String transactionId, String comment, float rating){
+        String token = parseJwt(header);
+        if(token == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
+        String buyerId = jwtUtils.getIdFromJwtToken(token);
+
+        Buyer buyer = buyerRepository.findById(buyerId).get();
+        Transaction transaction = transactionRepository.findById(transactionId).get();
+        Seller seller = sellerRepository.findById(transaction.getSellerId()).get();
+
+        Review review = new Review();
+        review.setTransactionId(transactionId);
+        review.setComment(comment);
+        review.setRating(rating);
+
+        reviewRepository.save(review);
+
+        if(buyer.getReviews() == null){
+            List<Review> newList = new ArrayList<>();
+            newList.add(review);
+            buyer.setReviews(newList);
+        }
+        else {
+            buyer.getReviews().add(review);
+        }
+
+        if(seller.getReviews() == null){
+            List<Review> newList = new ArrayList<>();
+            newList.add(review);
+            seller.setReviews(newList);
+        }
+        else {
+            seller.getReviews().add(review);
+        }
+
+        buyerRepository.save(buyer);
+        sellerRepository.save(seller);
+
+        return ResponseEntity.ok("Review has been made.");
+    }
+
+    public ResponseEntity<?> reportBusiness(String businessId, String reportDesc){
+        Optional<Seller> sellerInstance = sellerRepository.findById(businessId);
+        if(sellerInstance.isPresent()){
+            Report report = new Report();
+            report.setReportedBusinessId(businessId);
+            report.setReportDescription(reportDesc);
+
+            reportRepository.save(report);
+            return ResponseEntity.ok("Business is reported");
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Business with given id is not found.");
+        }
+    }
+
 }

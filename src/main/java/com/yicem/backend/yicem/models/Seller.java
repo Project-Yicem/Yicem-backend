@@ -41,7 +41,7 @@ public class Seller {
     @NonNull
     private float reservationTimeout;
 
-    private List<String> reviews;
+    private List<Review> reviews;
 
     private List<String> currentOffers;
 
