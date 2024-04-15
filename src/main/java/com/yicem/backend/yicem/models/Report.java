@@ -15,5 +15,8 @@ public class Report {
     private String id;
 
     @NonNull
+    private String reportedBusinessId;
+
+    @NonNull
     private String reportDescription;
 }
