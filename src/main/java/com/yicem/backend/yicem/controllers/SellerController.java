@@ -11,8 +11,8 @@ import com.yicem.backend.yicem.repositories.SellerRepository;
 import com.yicem.backend.yicem.repositories.TransactionRepository;
 import com.yicem.backend.yicem.repositories.UserRepository;
 import com.yicem.backend.yicem.security.jwt.JwtUtils;
-import com.yicem.backend.yicem.security.services.SellerService;
 import com.yicem.backend.yicem.security.services.UserDetailsImpl;
+import com.yicem.backend.yicem.services.SellerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

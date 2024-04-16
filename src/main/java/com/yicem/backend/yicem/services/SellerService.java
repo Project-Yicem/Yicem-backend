@@ -1,4 +1,4 @@
-package com.yicem.backend.yicem.security.services;
+package com.yicem.backend.yicem.services;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -78,6 +78,7 @@ public class SellerService {
                 seller.setCurrentOffers(new ArrayList<String>());
             }
             Offer newOffer = new Offer(offer);
+            newOffer.setSellerId(sellerID);
             // save newoffer to generate unique id
             offerRepository.save(newOffer);
             // add new offer id to seller's offer list
@@ -186,7 +187,7 @@ public class SellerService {
                     if (reservations.get(0) == null) {
                         return new ResponseEntity<>("The first element of the reservation queue is null.", HttpStatus.CONFLICT);
                     }
-                    Optional<Buyer> buyerOptional = buyerRepository.findById(reservations.get(0).getId());
+                    Optional<Buyer> buyerOptional = buyerRepository.findById(reservations.get(0).getBuyerId());
                     // validate buyer exists
                     if (buyerOptional.isPresent()) {
                         Buyer buyer = buyerOptional.get();
@@ -205,6 +206,13 @@ public class SellerService {
                             }
                             // update seller's past transaction list
                             seller.getPastTransactions().add(transaction.getId());
+                            // create past transaction list if it is null
+                            if (buyer.getPastTransactions() == null) {
+                                buyer.setPastTransactions(new ArrayList<Transaction>());
+                                System.out.println("markOfferSold: New past transaction list created for buyer.");
+                            }
+                            // update buyer's past transaction list
+                            buyer.getPastTransactions().add(transaction);
                             // update offer's queue
                             System.out.println("Queue before removal: "+reservations);
                             reservations.remove(0);
@@ -215,12 +223,14 @@ public class SellerService {
                                 seller.getCurrentOffers().remove(offer.getId());
                                 sellerRepository.save(seller);
                                 offerRepository.save(offer);
+                                buyerRepository.save(buyer);
                                 return new ResponseEntity<>("Last of the offer successfully sold.", HttpStatus.OK);
                             }
                             else{
                                 // there are more offers available
                                 offerRepository.save(offer);
                                 sellerRepository.save(seller);
+                                buyerRepository.save(buyer);
                                 return new ResponseEntity<>("Available offer count successfully decremented.", HttpStatus.OK);
                             }
                         }
