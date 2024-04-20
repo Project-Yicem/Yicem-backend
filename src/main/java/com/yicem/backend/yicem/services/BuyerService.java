@@ -2,6 +2,7 @@ package com.yicem.backend.yicem.services;
 
 import com.yicem.backend.yicem.models.*;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
+import com.yicem.backend.yicem.payload.request.ReviewRequest;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
 import com.yicem.backend.yicem.repositories.*;
 import com.yicem.backend.yicem.security.jwt.JwtUtils;
@@ -274,45 +275,28 @@ public class BuyerService {
         }
     }
 
-    public ResponseEntity<?> reviewBusiness(HttpHeaders header, String transactionId, String comment, float rating){
-        String token = parseJwt(header);
-        if(token == null){
+    public ResponseEntity<?> reviewBusiness(HttpHeaders header, String transactionId, ReviewRequest reviewRequest){
+        String comment = reviewRequest.getComment();
+        float rating = reviewRequest.getRating();
+        String buyerId = getIdFromHeader(header);
+        if(buyerId == null){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
         }
-        String buyerId = jwtUtils.getIdFromJwtToken(token);
 
         Buyer buyer = buyerRepository.findById(buyerId).get();
         Transaction transaction = transactionRepository.findById(transactionId).get();
         Seller seller = sellerRepository.findById(transaction.getSellerId()).get();
 
-        Review review = new Review();
-        review.setTransactionId(transactionId);
-        review.setComment(comment);
-        review.setRating(rating);
-
+        Review review = new Review(transactionId, comment, rating);
         reviewRepository.save(review);
 
-        if(buyer.getReviews() == null){
-            List<Review> newList = new ArrayList<>();
-            newList.add(review);
-            buyer.setReviews(newList);
-        }
-        else {
-            buyer.getReviews().add(review);
-        }
-
-        if(seller.getReviews() == null){
-            List<Review> newList = new ArrayList<>();
-            newList.add(review);
-            seller.setReviews(newList);
-        }
-        else {
-            seller.getReviews().add(review);
-        }
+        String reviewId = review.getId();
+        buyer.addReview(reviewId);
+        seller.addReview(reviewId);
 
         buyerRepository.save(buyer);
         sellerRepository.save(seller);
-
+        //TODO: Kaldigin yerden devam et.
         return ResponseEntity.ok("Review has been made.");
     }
 

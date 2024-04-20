@@ -3,6 +3,7 @@ package com.yicem.backend.yicem.controllers;
 import com.yicem.backend.yicem.models.Buyer;
 import com.yicem.backend.yicem.models.Seller;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
+import com.yicem.backend.yicem.payload.request.ReviewRequest;
 import com.yicem.backend.yicem.repositories.BuyerRepository;
 import com.yicem.backend.yicem.repositories.SellerRepository;
 import com.yicem.backend.yicem.repositories.UserRepository;
@@ -93,8 +94,9 @@ public class BuyerController {
     }
 
     @PostMapping("/review/{transactionId}")
-    public ResponseEntity<?> reviewTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String transactionId, @RequestParam String comment, @RequestParam float rating){
-        return buyerService.reviewBusiness(header, transactionId, comment, rating);
+    public ResponseEntity<?> reviewTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String transactionId,
+                                               @RequestBody ReviewRequest request){
+        return buyerService.reviewBusiness(header, transactionId, request);
     }
 
 

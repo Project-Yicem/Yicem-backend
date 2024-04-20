@@ -18,7 +18,7 @@ public class Buyer {
 
     private String username;
 
-    private List<Review> reviews;
+    private List<String> reviews;
 
     private List<Transaction> pastTransactions;
 
@@ -33,6 +33,10 @@ public class Buyer {
         this.pastTransactions = new ArrayList<>();
         this.supportReport = new ArrayList<>();
         this.favoriteSellers = new ArrayList<>();
+    }
+
+    public void addReview(String review) {
+        reviews.add(review);
     }
 
 }

@@ -27,6 +27,7 @@ public class SellerResponse {
 
     //Additional Attributes
     private boolean isOpen;
+    private float rating;
 
     public SellerResponse(Seller seller) {
         this.id = seller.getId();
