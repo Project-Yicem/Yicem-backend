@@ -1,8 +1,8 @@
 package com.yicem.backend.yicem.controllers;
 
 import com.yicem.backend.yicem.models.Buyer;
-import com.yicem.backend.yicem.models.Offer;
 import com.yicem.backend.yicem.models.Seller;
+import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.repositories.BuyerRepository;
 import com.yicem.backend.yicem.repositories.SellerRepository;
 import com.yicem.backend.yicem.repositories.UserRepository;
@@ -29,6 +29,7 @@ public class BuyerController {
     @Autowired
     private SellerRepository sellerRepository;
 
+    @Autowired
     private final BuyerService buyerService;
 
     @PutMapping("/update-username")
@@ -37,8 +38,9 @@ public class BuyerController {
     }
 
     @PutMapping("/update-password")
-    public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header, @RequestBody String newPassword){
-        return buyerService.changePassword(header, newPassword);
+    public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header,
+                                            @RequestBody PasswordChangeRequest passwordChangeRequest) {
+        return buyerService.changePassword(header, passwordChangeRequest);
     }
 
     @GetMapping("/all")
@@ -90,7 +92,7 @@ public class BuyerController {
         return buyerService.getPurchases(header);
     }
 
-    @PostMapping("/{transactionId}/review")
+    @PostMapping("/review/{transactionId}")
     public ResponseEntity<?> reviewTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String transactionId, @RequestParam String comment, @RequestParam float rating){
         return buyerService.reviewBusiness(header, transactionId, comment, rating);
     }

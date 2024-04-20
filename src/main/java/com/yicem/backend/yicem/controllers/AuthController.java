@@ -218,7 +218,7 @@ public class AuthController {
 		user.setRoles(roles);
 		userRepository.save(user);
 
-		Buyer buyer = new Buyer(user.getId(), signupRequest.getUsername(), signupRequest.getEmail(), signupRequest.getPassword());
+		Buyer buyer = new Buyer(user.getId(), signupRequest.getUsername());
 		buyerRepository.save(buyer);
 
 		return ResponseEntity.ok(new MessageResponse("Buyer registered successfully!"));

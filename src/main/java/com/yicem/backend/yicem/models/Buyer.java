@@ -12,7 +12,11 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Buyer extends User{
+public class Buyer {
+    @Id
+    private String id;
+
+    private String username;
 
     private List<Review> reviews;
 
@@ -22,9 +26,13 @@ public class Buyer extends User{
 
     private List<Seller> favoriteSellers;
 
-    public Buyer(String id, String username, String email, String password){
-        super(username, email, password);
-        this.setId(id);
+    public Buyer(String id, String username) {
+        this.id = id;
+        this.username = username;
+        this.reviews = new ArrayList<>();
+        this.pastTransactions = new ArrayList<>();
+        this.supportReport = new ArrayList<>();
+        this.favoriteSellers = new ArrayList<>();
     }
 
 }
