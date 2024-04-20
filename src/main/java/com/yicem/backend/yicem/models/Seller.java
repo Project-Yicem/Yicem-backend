@@ -4,7 +4,6 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalTime;
 import java.util.List;
 
 @Document(collection = "sellers")
@@ -34,10 +33,10 @@ public class Seller {
     private String businessName;
 
     @NonNull
-    private LocalTime openingHour;
+    private String openingHour;
 
     @NonNull
-    private LocalTime closingHour;
+    private String closingHour;
 
     @NonNull
     private String locationCoordinates;
@@ -52,5 +51,3 @@ public class Seller {
     private List<String> pastTransactions;
 
 }
-
-

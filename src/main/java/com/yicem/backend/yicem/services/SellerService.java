@@ -1,14 +1,13 @@
 package com.yicem.backend.yicem.services;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.catalina.connector.Response;
+import com.yicem.backend.yicem.payload.response.SellerResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -40,8 +39,19 @@ public class SellerService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public List<Seller> getSellers(){
-        return sellerRepository.findAll();
+    public List<SellerResponse> getSellers(){
+        List<Seller> sellers = sellerRepository.findAll();
+        List<SellerResponse> sellerResponses = new ArrayList<>();
+        LocalTime now = LocalTime.now();
+        for (Seller seller: sellers) {
+            SellerResponse sellerResponse = new SellerResponse(seller);
+            LocalTime openingHour, closingHour;
+            openingHour = LocalTime.parse(seller.getOpeningHour());
+            closingHour = LocalTime.parse(seller.getClosingHour());
+            sellerResponse.setOpen(now.isAfter(openingHour) && now.isBefore(closingHour));
+            sellerResponses.add(sellerResponse);
+        }
+        return sellerResponses;
     }
 
     public ResponseEntity<?> deleteSeller(String id){

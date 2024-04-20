@@ -1,53 +1,35 @@
 package com.yicem.backend.yicem.controllers;
 
-import com.yicem.backend.yicem.models.Buyer;
 import com.yicem.backend.yicem.models.Offer;
-import com.yicem.backend.yicem.models.Reservation;
-import com.yicem.backend.yicem.models.Seller;
-import com.yicem.backend.yicem.models.Transaction;
-import com.yicem.backend.yicem.repositories.BuyerRepository;
-import com.yicem.backend.yicem.repositories.OfferRepository;
-import com.yicem.backend.yicem.repositories.SellerRepository;
-import com.yicem.backend.yicem.repositories.TransactionRepository;
-import com.yicem.backend.yicem.repositories.UserRepository;
-import com.yicem.backend.yicem.security.jwt.JwtUtils;
+import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.security.services.UserDetailsImpl;
 import com.yicem.backend.yicem.services.SellerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-
-
 
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/seller")
-@PreAuthorize("hasRole('ROLE_SELLER') || hasRole('ROLE_ADMIN')")
+// Commented out for test purposes. It will uncommented after completion.
+// @PreAuthorize("hasRole('ROLE_SELLER') || hasRole('ROLE_ADMIN') || hasRole('ROLE_BUYER')")
 public class SellerController {
 
     @Autowired
     private SellerService sellerService;
 
     @GetMapping("/all")
-    public List<Seller> getSellers() {
+    public List<SellerResponse> getSellers() {
         return sellerService.getSellers();
     }
 

@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalTime;
-
 @Getter
 @Setter
 public class SellerSignupRequest {
@@ -34,8 +32,8 @@ public class SellerSignupRequest {
     private String phone;
     @Size(max = 20)
     private String businessName;
-    private LocalTime openingHour;
-    private LocalTime closingHour;
+    private String openingHour;
+    private String closingHour;
     private String locationCoordinates;
     private float reservationTimeout;
 

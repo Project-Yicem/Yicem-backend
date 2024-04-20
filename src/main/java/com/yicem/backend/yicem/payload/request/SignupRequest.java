@@ -37,8 +37,8 @@ public class SignupRequest {
     private String phone;
     @Size(max = 20)
     private String businessName;
-    private LocalTime openingHour;
-    private LocalTime closingHour;
+    private String openingHour;
+    private String closingHour;
     private String locationCoordinates;
     private float reservationTimeout;
 

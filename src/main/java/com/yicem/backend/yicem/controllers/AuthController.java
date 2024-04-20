@@ -180,8 +180,8 @@ public class AuthController {
 
 		Seller seller = new Seller(user.getId(), signupRequest.getUsername(), signupRequest.isApproved(),
 				signupRequest.getAddress(), signupRequest.getPhone(), signupRequest.getBusinessName(),
-				signupRequest.getOpeningHour(), signupRequest.getClosingHour(), signupRequest.getLocationCoordinates(),
-				signupRequest.getReservationTimeout());
+				signupRequest.getOpeningHour(), signupRequest.getClosingHour(),
+				signupRequest.getLocationCoordinates(), signupRequest.getReservationTimeout());
 		sellerRepository.save(seller);
 
 		return ResponseEntity.ok(new MessageResponse("Seller registered successfully!"));
