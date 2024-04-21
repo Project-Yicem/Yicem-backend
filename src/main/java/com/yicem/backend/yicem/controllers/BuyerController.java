@@ -1,13 +1,14 @@
 package com.yicem.backend.yicem.controllers;
 
 import com.yicem.backend.yicem.models.Buyer;
-import com.yicem.backend.yicem.models.Seller;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.payload.request.ReviewRequest;
+import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.BuyerRepository;
 import com.yicem.backend.yicem.repositories.SellerRepository;
 import com.yicem.backend.yicem.repositories.UserRepository;
 import com.yicem.backend.yicem.services.BuyerService;
+import com.yicem.backend.yicem.services.SellerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -28,10 +29,10 @@ public class BuyerController {
     private BuyerRepository buyerRepository;
 
     @Autowired
-    private SellerRepository sellerRepository;
+    private final BuyerService buyerService;
 
     @Autowired
-    private final BuyerService buyerService;
+    private final SellerService sellerService;
 
     @PutMapping("/update-username")
     public ResponseEntity<?> updateUsername(@RequestHeader HttpHeaders header, @RequestBody String newUsername){
@@ -61,8 +62,8 @@ public class BuyerController {
     }
 
     @GetMapping("/view-businesses")
-    public List<Seller> getSellers(){
-        return buyerService.listAllApproved();
+    public List<SellerResponse> getSellers(){
+        return sellerService.getApprovedSellers();
     }
 
     @GetMapping("/business/{businessId}/offers")
@@ -72,18 +73,20 @@ public class BuyerController {
 
 
     @GetMapping("/business/{businessId}/reviews")
-    public ResponseEntity<Object> getBusinessReviews(@PathVariable String businessId){
-        return buyerService.listAllReviewIdsOfBusiness(businessId);
+    public ResponseEntity<?> getBusinessReviews(@PathVariable String businessId){
+        return buyerService.getReviewsOfBusiness(businessId);
     }
 
     @PostMapping("/business/{businessId}/report")
-    public ResponseEntity<?> reportTheBusiness(@PathVariable String businessId, @RequestParam String reportDescription){
-        return buyerService.reportBusiness(businessId, reportDescription);
+    public ResponseEntity<?> reportTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String businessId,
+                                               @RequestParam String reportDescription){
+        return buyerService.reportBusiness(header, businessId, reportDescription);
     }
 
 
     @PostMapping("/reserve/{offerId}")
-    public ResponseEntity<Object> reserveTheOffer(@RequestHeader HttpHeaders header, @PathVariable String offerId, @RequestParam String timeSlot){
+    public ResponseEntity<Object> reserveTheOffer(@RequestHeader HttpHeaders header, @PathVariable String offerId,
+                                                  @RequestParam String timeSlot){
         return buyerService.reserveTheOffer(header, offerId, timeSlot);
     }
 

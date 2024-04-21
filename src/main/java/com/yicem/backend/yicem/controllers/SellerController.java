@@ -1,6 +1,6 @@
 package com.yicem.backend.yicem.controllers;
 
-import com.yicem.backend.yicem.models.Offer;
+import com.yicem.backend.yicem.payload.request.OfferRequest;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.security.services.UserDetailsImpl;
 import com.yicem.backend.yicem.services.SellerService;
@@ -8,7 +8,6 @@ import com.yicem.backend.yicem.services.SellerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,20 +38,20 @@ public class SellerController {
     }
 
     @PostMapping("/{seller}/addOffer")
-    public ResponseEntity<?> addOffer(@RequestBody Offer offer, @PathVariable("seller") String sellerID) {
+    public ResponseEntity<?> addOffer(@RequestBody OfferRequest offerRequest, @PathVariable("seller") String sellerID) {
         if (checkSellerAuthenticaton(sellerID)) {
-            return sellerService.addOffer(offer, sellerID);    
+            return sellerService.addOffer(offerRequest, sellerID);
         }
-        else{
+        else {
             return new ResponseEntity<>("Access denied to the specified object.", HttpStatus.FORBIDDEN);
         }
     }
     
     @PostMapping("/{seller}/modifyOffer/{offerID}")
-    public ResponseEntity<?> modifyOffer(@RequestBody Offer offerInfo, @PathVariable("seller") String sellerID,
-     @PathVariable("offerID") String offerID) {
+    public ResponseEntity<?> modifyOffer(@RequestBody OfferRequest request, @PathVariable("seller") String sellerID,
+                                         @PathVariable("offerID") String offerID) {
         if (checkSellerAuthenticaton(sellerID)) {
-            return sellerService.modifyOffer(offerInfo, sellerID, offerID);
+            return sellerService.modifyOffer(request, sellerID, offerID);
         }
         else{
             return new ResponseEntity<>("Access denied to the specified object.", HttpStatus.FORBIDDEN);
@@ -127,12 +126,7 @@ public class SellerController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         
         System.out.println("object id from jwt token: " + userDetails.getId());
-        if (sellerID.equals(userDetails.getId())) {
-            return true;
-        }
-        else{
-            return false;
-        }
+        return sellerID.equals(userDetails.getId());
     }
     
 

@@ -7,16 +7,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "reports")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Report {
     @Id
-    @NonNull
     private String id;
 
-    @NonNull
     private String reportedBusinessId;
-
-    @NonNull
     private String reportDescription;
+
+    public Report(String reportedBusinessId, String reportDescription) {
+        this.reportedBusinessId = reportedBusinessId;
+        this.reportDescription = reportDescription;
+    }
+
 }

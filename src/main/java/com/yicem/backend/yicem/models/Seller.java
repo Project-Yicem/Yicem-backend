@@ -5,7 +5,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Document(collection = "sellers")
 @Getter
@@ -13,30 +12,21 @@ import java.util.List;
 public class Seller {
     @Id
     private String id;
-
     private String username;
-
     private boolean isApproved;
-
     private String address;
-
     private String phone;
-
     private String businessName;
-
     private String openingHour;
-
     private String closingHour;
-
     private String locationCoordinates;
-
     private float reservationTimeout;
+    private float rating;
 
-    private List<String> reviews;
-
-    private List<String> currentOffers;
-
-    private List<String> pastTransactions;
+    //These will hold IDs instead of objects. They will initialized as Empty Lists.
+    private ArrayList<String> reviews;
+    private ArrayList<String> offers;
+    private ArrayList<String> pastTransactions;
 
     public Seller(String id, String username, boolean isApproved, String address, String phone, String businessName,
                   String openingHour, String closingHour, String locationCoordinates, float reservationTimeout) {
@@ -50,11 +40,40 @@ public class Seller {
         this.closingHour = closingHour;
         this.locationCoordinates = locationCoordinates;
         this.reservationTimeout = reservationTimeout;
+        this.rating = 0;
+
         this.reviews = new ArrayList<>();
-        this.currentOffers = new ArrayList<>();
+        this.offers = new ArrayList<>();
+        this.pastTransactions = new ArrayList<>();
     }
 
-    public void addReview(String review) {
-        this.reviews.add(review);
+    public void addReview(String id, int rating) {
+        // Check if review exists
+        if(!reviews.contains(id)) {
+            // Compute new rating score
+            int reviewCount = reviews.size();
+            float sum = this.rating * reviewCount + rating;
+            this.rating = sum / (reviewCount + 1);
+
+            // Add review to reviewList
+            this.reviews.add(id);
+        }
     }
+
+    public void addOffer(String id) {
+        if(!offers.contains(id)) {
+            this.offers.add(id);
+        }
+    }
+
+    public void removeOffer(String id) {
+        this.offers.remove(id);
+    }
+
+    public void addTransaction(String id) {
+        if(!pastTransactions.contains(id)) {
+            this.pastTransactions.add(id);
+        }
+    }
+
 }
