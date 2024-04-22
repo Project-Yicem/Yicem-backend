@@ -16,7 +16,7 @@ public class Offer {
     @Id
     private String id;
 
-    // Will have take their values from request
+    // Will take their values from request
     private String sellerId;
     private String offerName;
     private String description;

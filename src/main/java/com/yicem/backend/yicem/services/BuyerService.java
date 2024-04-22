@@ -98,18 +98,25 @@ public class BuyerService {
 
         Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
         if(buyerOptional.isPresent()) { // Buyer exists in DB
+            Buyer buyer = buyerOptional.get();
 
             Optional<Offer> offerInstance = offerRepository.findById(offerId);
             if(offerInstance.isPresent()){
                 Offer offer = offerInstance.get();
 
+                //TODO: Update this such that the buyer should be able to make a reservation for the same offer MORE
+                // THAN ONCE (Consider there must be enough available quantity for the offer)
                 if(!reservationRepository.existsByBuyerIdAndOfferId(buyerId, offerId)) { // Such reservation DNE in DB
 
                     Reservation newReservation = new Reservation(buyerId, offer.getSellerId(), offerId, timeSlot);
                     reservationRepository.save(newReservation);
 
+                    // Add new reservation's ID to the related models
                     offer.addReservation(newReservation.getId());
+                    buyer.addReservation(newReservation.getId());
+
                     offerRepository.save(offer);
+                    buyerRepository.save(buyer);
 
                     return ResponseEntity.ok(new MessageResponse("Reservation made for " + timeSlot + " successfully"));
                 }

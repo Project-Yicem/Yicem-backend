@@ -224,19 +224,21 @@ public class SellerService {
                     List<Reservation> reservations = reservationRepository.findAllById(offer.getReservations());
 
                     if (!reservations.isEmpty()) { // There IS at least one reservation
-
+                        // TODO: Update this logic that THERE WILL BE NO QUEUE
+                        //  Each offer has a list of reservations, we will mark an individual reservation of the offer
+                        //  as sold.
+                        //  For example: User1’s reservation of the Offer1 at timeslot…. has been marked as
+                        //  sold. Remove the available quantity of the offer by one.
                         Reservation firstReservation = reservations.get(0);
 
                         Optional<Buyer> buyerOptional = buyerRepository.findById(firstReservation.getBuyerId());
-                        // Validate buyer exists
-                        if (buyerOptional.isPresent()) {
-
+                        if (buyerOptional.isPresent()) { // Buyer exists in DB
                             Buyer buyer = buyerOptional.get();
                             System.out.println("markOfferSold: Buyer validated.");
 
-                            // Update offer count
-                            if( offer.sellItem() ) {
+                            if( offer.sellItem() ) { // Sell ONE item of the offer
 
+                                buyer.removeReservation(firstReservation.getId());
                                 reservationRepository.deleteById(firstReservation.getId());
 
                                 // Create new transaction object
@@ -245,7 +247,7 @@ public class SellerService {
 
                                 // Add new transaction to the database
                                 transactionRepository.save(transaction);
-                                // Add transaction to buyer and seller
+                                // Add new transaction ID to buyer and seller
                                 seller.addTransaction(transaction.getId());
                                 buyer.addTransaction(transaction.getId());
 
@@ -259,7 +261,7 @@ public class SellerService {
 
                                     // All items of this offer are sold. Delete this offer from seller.
                                     // TODO: Maybe create a PastOffers List of Seller and add it to this.
-                                    //  It also does not delete the offer from offerRepository, just saves with 0 items.
+                                    //  Currently, it does NOT delete the offer from DB, just saves with 0 items.
                                     seller.removeOffer(offerID);
 
                                     sellerRepository.save(seller);
