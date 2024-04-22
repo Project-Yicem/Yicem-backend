@@ -5,7 +5,6 @@ import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.payload.request.ReviewRequest;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.BuyerRepository;
-import com.yicem.backend.yicem.repositories.SellerRepository;
 import com.yicem.backend.yicem.repositories.UserRepository;
 import com.yicem.backend.yicem.services.BuyerService;
 import com.yicem.backend.yicem.services.SellerService;

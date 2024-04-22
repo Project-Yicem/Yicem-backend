@@ -1,5 +1,6 @@
 package com.yicem.backend.yicem.models;
 
+import com.yicem.backend.yicem.helpers.PickupTime;
 import com.yicem.backend.yicem.payload.request.OfferRequest;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -15,7 +16,7 @@ public class Offer {
     @Id
     private String id;
 
-    // Will have specific values at initialization
+    // Will have take their values from request
     private String sellerId;
     private String offerName;
     private String description;
@@ -23,6 +24,7 @@ public class Offer {
     private int itemCount;
     private boolean isMysteryBox;
     private List<String> categories;
+    private List<PickupTime> pickupTimes;
 
     // Will have default (false, false, now, emptyList) values at initialization
     private boolean isReserved;
@@ -43,6 +45,7 @@ public class Offer {
         } else {
             this.categories.add("noCategory");
         }
+        this.pickupTimes = request.getPickupTimes();
 
         this.isReserved = false;
         this.isCompleted = false;
@@ -51,7 +54,7 @@ public class Offer {
     }
 
     public Offer(String description, boolean isMysteryBox, float price,
-     int itemCount, String offerName, List<String> categories ){
+     int itemCount, String offerName, List<String> categories, List<PickupTime> pickupTimes ){
         this.description = description;
         this.isMysteryBox = isMysteryBox;
         this.price = price;
@@ -70,7 +73,9 @@ public class Offer {
                 this.categories = categories;
             }
         }
-        // set values for new offers
+        this.pickupTimes = pickupTimes;
+
+        // Set values for new offers
         this.isReserved = false;
         this.isCompleted = false;
         this.offeredAt = new Date();
@@ -90,6 +95,7 @@ public class Offer {
         if (this.categories.isEmpty()) {
             this.categories.add("noCategory");
         }
+        this.pickupTimes = request.getPickupTimes();
 
     }
 

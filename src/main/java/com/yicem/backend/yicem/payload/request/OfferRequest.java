@@ -1,5 +1,6 @@
 package com.yicem.backend.yicem.payload.request;
 
+import com.yicem.backend.yicem.helpers.PickupTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,4 +18,5 @@ public class OfferRequest {
     private boolean isMysteryBox;
 
     private List<String> categories;
+    private List<PickupTime> pickupTimes;
 }
