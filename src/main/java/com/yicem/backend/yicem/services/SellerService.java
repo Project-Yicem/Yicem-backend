@@ -7,10 +7,12 @@ import java.util.Optional;
 
 import com.yicem.backend.yicem.models.*;
 import com.yicem.backend.yicem.payload.request.OfferRequest;
+import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,12 +33,36 @@ public class SellerService {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
     @Autowired
     private ReservationRepository reservationRepository;
+
+    @Autowired
+    private UserService userService;
 
     public List<SellerResponse> getSellers(){
         List<Seller> sellers = sellerRepository.findAll();
         return getSellersFromList(sellers);
+    }
+
+    public ResponseEntity<?> getSeller(String sellerId){
+
+        Optional<Seller> sellerOptional = sellerRepository.findById(sellerId);
+        LocalTime now = LocalTime.now();
+        if(sellerOptional.isPresent()){
+            Seller seller = sellerOptional.get();
+
+            SellerResponse sellerResponse = new SellerResponse(seller);
+            LocalTime openingHour, closingHour;
+            openingHour = LocalTime.parse(seller.getOpeningHour());
+            closingHour = LocalTime.parse(seller.getClosingHour());
+            sellerResponse.setOpen(now.isAfter(openingHour) && now.isBefore(closingHour));
+
+            return ResponseEntity.ok(sellerResponse);
+
+        } else {
+            return new ResponseEntity<>("Seller not found", HttpStatus.NOT_FOUND);
+        }
     }
 
     public List<SellerResponse> getApprovedSellers(){
@@ -337,6 +363,23 @@ public class SellerService {
         }       
         else{
             return new ResponseEntity<>(new MessageResponse("Specified seller does not exist"), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    public ResponseEntity<?> changePassword(HttpHeaders header, PasswordChangeRequest passwordChangeRequest) {
+
+        String userId = userService.getIdFromHeader(header);
+        if(userId.isEmpty()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        }
+
+        Optional<Seller> sellerOptional = sellerRepository.findById(userId);
+
+        if(sellerOptional.isPresent()){
+            return userService.changePassword(header, passwordChangeRequest);
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Seller is not found");
         }
     }
 

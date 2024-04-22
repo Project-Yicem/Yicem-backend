@@ -1,11 +1,13 @@
 package com.yicem.backend.yicem.controllers;
 
 import com.yicem.backend.yicem.payload.request.OfferRequest;
+import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.security.services.UserDetailsImpl;
 import com.yicem.backend.yicem.services.SellerService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +32,17 @@ public class SellerController {
     @GetMapping("/all")
     public List<SellerResponse> getSellers() {
         return sellerService.getSellers();
+    }
+
+    @GetMapping("/{seller}")
+    public ResponseEntity<?> getSeller(@PathVariable String seller) {
+        return sellerService.getSeller(seller);
+    }
+
+    @PutMapping("/update-password")
+    public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header,
+                                            @RequestBody PasswordChangeRequest passwordChangeRequest) {
+        return sellerService.changePassword(header, passwordChangeRequest);
     }
 
     @DeleteMapping("/delete/{id}")
