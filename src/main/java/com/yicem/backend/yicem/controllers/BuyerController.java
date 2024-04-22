@@ -65,6 +65,11 @@ public class BuyerController {
         return sellerService.getApprovedSellers();
     }
 
+    @GetMapping("/reservations")
+    public ResponseEntity<?> getActiveReservations(@RequestHeader HttpHeaders header){
+        return buyerService.getActiveReservations(header);
+    }
+
     @GetMapping("/business/{businessId}/offers")
     public ResponseEntity<Object> getBusinessesOffers(@PathVariable String businessId){
         return buyerService.listAllOfferIdsOfBusiness(businessId);

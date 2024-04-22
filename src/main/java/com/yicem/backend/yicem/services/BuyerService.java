@@ -323,8 +323,7 @@ public class BuyerService {
         String buyerId = getIdFromHeader(header);
 
         Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
-        if(buyerOptional.isPresent()){
-
+        if(buyerOptional.isPresent()) { // Buyer is in DB
             Buyer buyer = buyerOptional.get();
 
             Report report = new Report(businessId, reportDesc);
@@ -334,6 +333,23 @@ public class BuyerService {
             buyerRepository.save(buyer);
 
             return ResponseEntity.ok(new MessageResponse("Business is reported successfully"));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
+        }
+
+    }
+
+    public ResponseEntity<?> getActiveReservations(HttpHeaders header) {
+        String buyerId = getIdFromHeader(header);
+
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if(buyerOptional.isPresent()){
+            Buyer buyer = buyerOptional.get();
+
+            List<String> reservationIds = buyer.getActiveReservations();
+            List<Reservation> reservations = reservationRepository.findAllById(reservationIds);
+
+            return ResponseEntity.ok(reservations);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
