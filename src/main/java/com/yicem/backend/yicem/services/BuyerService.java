@@ -250,6 +250,30 @@ public class BuyerService {
 
     }
 
+    public ResponseEntity<?> removeFromFavorites(HttpHeaders header, String businessId) {
+        String buyerId = getIdFromHeader(header);
+
+        Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
+        if(buyerInstance.isPresent()){
+            Buyer buyer = buyerInstance.get();
+
+            if (sellerRepository.findById(businessId).isPresent()){
+
+                if( buyer.removeFavoriteSeller(businessId) ) {
+                    buyerRepository.save(buyer);
+                    return ResponseEntity.ok(new MessageResponse("Seller is removed from favorites"));
+                } else {
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body(new MessageResponse("Error: Not in favorites"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
+        }
+    }
+
     public ResponseEntity<?> reviewBusiness(HttpHeaders header, String transactionId, ReviewRequest reviewRequest){
 
         String comment = reviewRequest.getComment();

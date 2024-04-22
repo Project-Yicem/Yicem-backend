@@ -112,6 +112,11 @@ public class BuyerController {
         return buyerService.addToFavorites(header, businessId);
     }
 
+    @PostMapping("/unfavorite/{businessId}")
+    public ResponseEntity<?> removeFavorite(@RequestHeader HttpHeaders header, @PathVariable String businessId){
+        return buyerService.removeFromFavorites(header, businessId);
+    }
+
     @GetMapping("/favorites")
     public ResponseEntity<?> getFavorites(@RequestHeader HttpHeaders header){
         return buyerService.getFavorites(header);
