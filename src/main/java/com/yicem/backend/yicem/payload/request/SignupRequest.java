@@ -5,9 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.util.Pair;
 
-import java.time.LocalTime;
 import java.util.Set;
 
 @Getter
