@@ -3,6 +3,7 @@ package com.yicem.backend.yicem.models;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.util.Pair;
 
 import java.util.ArrayList;
 
@@ -19,7 +20,8 @@ public class Seller {
     private String businessName;
     private String openingHour;
     private String closingHour;
-    private String locationCoordinates;
+    private String locationLatitude;
+    private String locationLongitude;
     private float reservationTimeout;
     private float rating;
 
@@ -29,7 +31,8 @@ public class Seller {
     private ArrayList<String> pastTransactions;
 
     public Seller(String id, String username, boolean isApproved, String address, String phone, String businessName,
-                  String openingHour, String closingHour, String locationCoordinates, float reservationTimeout) {
+                  String openingHour, String closingHour, String locationLatitude, String locationLongitude,
+                  float reservationTimeout) {
         this.id = id;
         this.username = username;
         this.isApproved = isApproved;
@@ -38,10 +41,12 @@ public class Seller {
         this.businessName = businessName;
         this.openingHour = openingHour;
         this.closingHour = closingHour;
-        this.locationCoordinates = locationCoordinates;
+        this.locationLatitude = locationLatitude;
+        this.locationLongitude = locationLongitude;
         this.reservationTimeout = reservationTimeout;
         this.rating = 0;
 
+        // They will initialize as empty lists
         this.reviews = new ArrayList<>();
         this.offers = new ArrayList<>();
         this.pastTransactions = new ArrayList<>();

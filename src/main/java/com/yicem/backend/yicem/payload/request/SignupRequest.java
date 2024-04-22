@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.Pair;
 
 import java.time.LocalTime;
 import java.util.Set;
@@ -39,7 +40,8 @@ public class SignupRequest {
     private String businessName;
     private String openingHour;
     private String closingHour;
-    private String locationCoordinates;
+    private String locationLatitude;
+    private String locationLongitude;
     private float reservationTimeout;
 
 }

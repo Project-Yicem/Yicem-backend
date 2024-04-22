@@ -4,6 +4,7 @@ import com.yicem.backend.yicem.models.Seller;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.Pair;
 
 @Getter
 @Setter
@@ -22,7 +23,8 @@ public class SellerResponse {
     private String businessName;
     private String openingHour;
     private String closingHour;
-    private String locationCoordinates;
+    private String locationLatitude;
+    private String locationLongitude;
     private float reservationTimeout;
 
     //Additional Attributes
@@ -38,7 +40,8 @@ public class SellerResponse {
         this.businessName = seller.getBusinessName();
         this.openingHour = seller.getOpeningHour();
         this.closingHour = seller.getClosingHour();
-        this.locationCoordinates = seller.getLocationCoordinates();
+        this.locationLatitude = seller.getLocationLatitude();
+        this.locationLongitude = seller.getLocationLongitude();
         this.reservationTimeout = seller.getReservationTimeout();
     }
 }

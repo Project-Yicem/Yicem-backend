@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.Pair;
 
 @Getter
 @Setter
@@ -34,7 +35,8 @@ public class SellerSignupRequest {
     private String businessName;
     private String openingHour;
     private String closingHour;
-    private String locationCoordinates;
+    private String locationLatitude;
+    private String locationLongitude;
     private float reservationTimeout;
 
 }
