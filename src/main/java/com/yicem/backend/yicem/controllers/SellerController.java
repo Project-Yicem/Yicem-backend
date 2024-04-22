@@ -2,6 +2,7 @@ package com.yicem.backend.yicem.controllers;
 
 import com.yicem.backend.yicem.payload.request.OfferRequest;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
+import com.yicem.backend.yicem.payload.request.SellerUpdateRequest;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.security.services.UserDetailsImpl;
 import com.yicem.backend.yicem.services.SellerService;
@@ -43,6 +44,11 @@ public class SellerController {
     public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header,
                                             @RequestBody PasswordChangeRequest passwordChangeRequest) {
         return sellerService.changePassword(header, passwordChangeRequest);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> update(@RequestHeader HttpHeaders header, @RequestBody SellerUpdateRequest updateRequest) {
+        return sellerService.updateSeller(header, updateRequest);
     }
 
     @DeleteMapping("/delete/{id}")

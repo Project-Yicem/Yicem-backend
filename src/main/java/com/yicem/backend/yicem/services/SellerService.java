@@ -8,6 +8,7 @@ import java.util.Optional;
 import com.yicem.backend.yicem.models.*;
 import com.yicem.backend.yicem.payload.request.OfferRequest;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
+import com.yicem.backend.yicem.payload.request.SellerUpdateRequest;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.*;
@@ -379,6 +380,40 @@ public class SellerService {
             return userService.changePassword(header, passwordChangeRequest);
         }
         else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Seller is not found");
+        }
+    }
+
+    public ResponseEntity<?> updateSeller(HttpHeaders header, SellerUpdateRequest updateRequest) {
+
+        String userId = userService.getIdFromHeader(header);
+        Optional<Seller> sellerOptional = sellerRepository.findById(userId);
+        if(sellerOptional.isPresent()){
+            Seller seller = sellerOptional.get();
+
+            // Update non-null values in request body
+            if(updateRequest.getAddress() != null)
+                seller.setAddress(updateRequest.getAddress());
+            if(updateRequest.getPhone() != null)
+                seller.setPhone(updateRequest.getPhone());
+            if(updateRequest.getBusinessName() != null)
+                seller.setBusinessName(updateRequest.getBusinessName());
+            if(updateRequest.getOpeningHour() != null)
+                seller.setOpeningHour(updateRequest.getOpeningHour());
+            if(updateRequest.getClosingHour() != null)
+                seller.setClosingHour(updateRequest.getClosingHour());
+            if(updateRequest.getLocationLatitude() != null)
+                seller.setLocationLatitude(updateRequest.getLocationLatitude());
+            if(updateRequest.getLocationLongitude() != null)
+                seller.setLocationLongitude(updateRequest.getLocationLongitude());
+            if(updateRequest.getReservationTimeout() != 0)
+                seller.setReservationTimeout(updateRequest.getReservationTimeout());
+
+            sellerRepository.save(seller);
+
+            return ResponseEntity.ok("Seller updated successfully");
+
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Seller is not found");
         }
     }
