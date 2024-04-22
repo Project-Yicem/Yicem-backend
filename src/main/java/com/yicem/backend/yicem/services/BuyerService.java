@@ -183,7 +183,8 @@ public class BuyerService {
 
         if(buyerInstance.isPresent()){
             Buyer buyer = buyerInstance.get();
-            List<Seller> res = sellerRepository.findAllById(buyer.getFavoriteSellers());
+            List<Seller> sellers = sellerRepository.findAllById(buyer.getFavoriteSellers());
+            List<SellerResponse> res = sellerService.getSellersFromList(sellers);
             return ResponseEntity.ok(res);
         }
         else{
