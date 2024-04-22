@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 public class SellerResponse {
@@ -26,6 +28,9 @@ public class SellerResponse {
     private String locationLongitude;
     private String logo;
     private float reservationTimeout;
+    private List<String> reviews;
+    private List<String> offers;
+    private List<String> pastTransactions;
 
     //Additional Attributes
     private boolean isOpen;
@@ -44,6 +49,9 @@ public class SellerResponse {
         this.locationLongitude = seller.getLocationLongitude();
         this.logo = seller.getLogo();
         this.reservationTimeout = seller.getReservationTimeout();
+        this.reviews = seller.getReviews();
+        this.offers = seller.getOffers();
+        this.pastTransactions = seller.getPastTransactions();
     }
 }
 

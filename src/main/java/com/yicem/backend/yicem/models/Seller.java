@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Document(collection = "sellers")
 @Getter
@@ -26,9 +27,9 @@ public class Seller {
     private float rating;
 
     //These will hold IDs instead of objects. They will initialized as Empty Lists.
-    private ArrayList<String> reviews;
-    private ArrayList<String> offers;
-    private ArrayList<String> pastTransactions;
+    private List<String> reviews;
+    private List<String> offers;
+    private List<String> pastTransactions;
 
     public Seller(String id, String username, boolean isApproved, String address, String phone, String businessName,
                   String openingHour, String closingHour, String locationLatitude, String locationLongitude,
