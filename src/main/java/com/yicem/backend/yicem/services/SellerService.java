@@ -406,6 +406,8 @@ public class SellerService {
                 seller.setLocationLatitude(updateRequest.getLocationLatitude());
             if(updateRequest.getLocationLongitude() != null)
                 seller.setLocationLongitude(updateRequest.getLocationLongitude());
+            if(updateRequest.getLogo() != null)
+                seller.setLogo(updateRequest.getLogo());
             if(updateRequest.getReservationTimeout() != 0)
                 seller.setReservationTimeout(updateRequest.getReservationTimeout());
 

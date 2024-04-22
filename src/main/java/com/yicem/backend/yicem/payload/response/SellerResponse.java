@@ -24,6 +24,7 @@ public class SellerResponse {
     private String closingHour;
     private String locationLatitude;
     private String locationLongitude;
+    private String logo;
     private float reservationTimeout;
 
     //Additional Attributes
@@ -41,6 +42,7 @@ public class SellerResponse {
         this.closingHour = seller.getClosingHour();
         this.locationLatitude = seller.getLocationLatitude();
         this.locationLongitude = seller.getLocationLongitude();
+        this.logo = seller.getLogo();
         this.reservationTimeout = seller.getReservationTimeout();
     }
 }

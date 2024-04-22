@@ -21,6 +21,7 @@ public class Seller {
     private String closingHour;
     private String locationLatitude;
     private String locationLongitude;
+    private String logo;
     private float reservationTimeout;
     private float rating;
 
@@ -31,7 +32,7 @@ public class Seller {
 
     public Seller(String id, String username, boolean isApproved, String address, String phone, String businessName,
                   String openingHour, String closingHour, String locationLatitude, String locationLongitude,
-                  float reservationTimeout) {
+                  String logo, float reservationTimeout) {
         this.id = id;
         this.username = username;
         this.isApproved = isApproved;
@@ -42,6 +43,7 @@ public class Seller {
         this.closingHour = closingHour;
         this.locationLatitude = locationLatitude;
         this.locationLongitude = locationLongitude;
+        this.logo = logo;
         this.reservationTimeout = reservationTimeout;
         this.rating = 0;
 

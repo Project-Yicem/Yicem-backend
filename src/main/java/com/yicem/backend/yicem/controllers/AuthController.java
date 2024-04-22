@@ -121,7 +121,7 @@ public class AuthController {
 								signupRequest.getAddress(), signupRequest.getPhone(), signupRequest.getBusinessName(),
 								signupRequest.getOpeningHour(), signupRequest.getClosingHour(),
 								signupRequest.getLocationLatitude(), signupRequest.getLocationLongitude(),
-								signupRequest.getReservationTimeout());
+								signupRequest.getLogo(), signupRequest.getReservationTimeout());
 						sellerRepository.save(seller);
 
 						break;
@@ -182,7 +182,7 @@ public class AuthController {
 		Seller seller = new Seller(user.getId(), signupRequest.getUsername(), signupRequest.isApproved(),
 				signupRequest.getAddress(), signupRequest.getPhone(), signupRequest.getBusinessName(),
 				signupRequest.getOpeningHour(), signupRequest.getClosingHour(), signupRequest.getLocationLatitude(),
-				signupRequest.getLocationLongitude(), signupRequest.getReservationTimeout());
+				signupRequest.getLocationLongitude(), signupRequest.getLogo(), signupRequest.getReservationTimeout());
 		sellerRepository.save(seller);
 
 		return ResponseEntity.ok(new MessageResponse("Seller registered successfully!"));

@@ -36,6 +36,7 @@ public class SellerSignupRequest {
     private String closingHour;
     private String locationLatitude;
     private String locationLongitude;
+    private String logo;
     private float reservationTimeout;
 
 }

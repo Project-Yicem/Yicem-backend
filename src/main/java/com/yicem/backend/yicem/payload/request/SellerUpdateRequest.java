@@ -1,7 +1,5 @@
 package com.yicem.backend.yicem.payload.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,5 +19,6 @@ public class SellerUpdateRequest {
     private String closingHour;
     private String locationLatitude;
     private String locationLongitude;
+    private String logo;
     private float reservationTimeout;
 }
