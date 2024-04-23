@@ -10,6 +10,8 @@ import com.yicem.backend.yicem.payload.request.OfferRequest;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.payload.request.SellerUpdateRequest;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
+import com.yicem.backend.yicem.payload.response.OfferResponse;
+import com.yicem.backend.yicem.payload.response.ReservationResponse;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -217,8 +219,25 @@ public class SellerService {
 
                 List<String> currentOfferIDs = seller.getOffers();
                 List<Offer> currentOffers = offerRepository.findAllById(currentOfferIDs);
+                List<OfferResponse> responses = new ArrayList<>();
 
-                return new ResponseEntity<>(currentOffers, HttpStatus.OK);
+                for (Offer offer : currentOffers) {
+                    OfferResponse offerResponse = new OfferResponse(offer);
+
+                    List<Reservation> reservationList = reservationRepository.findAllById(offer.getReservations());
+                    List<ReservationResponse> reservationResponses = new ArrayList<>();
+                    for (Reservation reservation : reservationList) {
+                        reservationResponses.add( new ReservationResponse(reservation.getId(),
+                                seller.getBusinessName(), offer.getOfferName(), offer.getPrice(),
+                                reservation.getTimeSlot()));
+                    }
+
+                    offerResponse.setReservations(reservationResponses);
+
+                    responses.add(offerResponse);
+                }
+
+                return new ResponseEntity<>(responses, HttpStatus.OK);
 
             } else {
                 return new ResponseEntity<>(new MessageResponse("Offer list is empty"), HttpStatus.OK);
