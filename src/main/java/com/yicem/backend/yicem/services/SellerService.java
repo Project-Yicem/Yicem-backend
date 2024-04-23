@@ -230,7 +230,7 @@ public class SellerService {
 
     }
 
-    public ResponseEntity<?> markOfferSold(String sellerID, String offerID) {
+    public ResponseEntity<?> markOfferSold(String sellerID, String offerID, String reservationID) {
 
         Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
         // Validate seller existence
@@ -248,93 +248,96 @@ public class SellerService {
                     Offer offer = offerOptional.get();
                     System.out.println("markOfferSold: Offer validated.");
 
-                    List<Reservation> reservations = reservationRepository.findAllById(offer.getReservations());
-
-                    if (!reservations.isEmpty()) { // There IS at least one reservation
-                        // TODO: Update this logic that THERE WILL BE NO QUEUE
-                        //  Each offer has a list of reservations, we will mark an individual reservation of the offer
-                        //  as sold.
-                        //  For example: User1’s reservation of the Offer1 at timeslot…. has been marked as
-                        //  sold. Remove the available quantity of the offer by one.
-                        Reservation firstReservation = reservations.get(0);
-
-                        Optional<Buyer> buyerOptional = buyerRepository.findById(firstReservation.getBuyerId());
-                        if (buyerOptional.isPresent()) { // Buyer exists in DB
-                            Buyer buyer = buyerOptional.get();
-                            System.out.println("markOfferSold: Buyer validated.");
-
-                            if( offer.sellItem() ) { // Sell ONE item of the offer
-
-                                buyer.removeReservation(firstReservation.getId());
-                                reservationRepository.deleteById(firstReservation.getId());
-
-                                // Create new transaction object
-                                Transaction transaction = new Transaction(buyer.getId(),
-                                        seller.getId(), offer.getOfferName(), offer.getPrice());
-
-                                // Add new transaction to the database
-                                transactionRepository.save(transaction);
-                                // Add new transaction ID to buyer and seller
-                                seller.addTransaction(transaction.getId());
-                                buyer.addTransaction(transaction.getId());
-
-                                // Update offer's queue
-                                System.out.println("Queue before item sold: " + offer.getReservations());
-                                offer.removeReservation(firstReservation.getId());
-                                System.out.println("Queue after item sold" + offer.getReservations());
-
-                                // Check if there are still offers available
-                                if (offer.isCompleted()) {
-
-                                    // All items of this offer are sold. Delete this offer from seller.
-                                    // TODO: Maybe create a PastOffers List of Seller and add it to this.
-                                    //  Currently, it does NOT delete the offer from DB, just saves with 0 items.
-                                    seller.removeOffer(offerID);
-
-                                    sellerRepository.save(seller);
-                                    offerRepository.save(offer);
-                                    buyerRepository.save(buyer);
-
-                                    return new ResponseEntity<>(new MessageResponse("Last of the offer successfully sold"),
-                                            HttpStatus.OK);
+                    Optional<Reservation> reservationOptional = reservationRepository.findById(reservationID);
+                    // Validate reservation exists in database
+                    if (reservationOptional.isPresent()) {
+                        // validate reservation list is valid and specified reservation exists in offer's list
+                        List<String> reservations = offer.getReservations();
+                        if (!reservations.isEmpty() && reservations.contains(reservationID)) { // There IS at least one reservation
+                            // get reservation from database since it is confirmed to exist in reservation list
+                            Reservation reservation = reservationOptional.get();
+    
+                            Optional<Buyer> buyerOptional = buyerRepository.findById(reservation.getBuyerId());
+                            if (buyerOptional.isPresent()) { // Buyer exists in DB
+                                Buyer buyer = buyerOptional.get();
+                                System.out.println("markOfferSold: Buyer validated.");
+    
+                                if( offer.sellItem() ) { // Sell ONE item of the offer
+    
+                                    buyer.removeReservation(reservation.getId());
+                                    reservationRepository.deleteById(reservation.getId());
+    
+                                    // Create new transaction object
+                                    Transaction transaction = new Transaction(buyer.getId(),
+                                            seller.getId(), offer.getOfferName(), offer.getPrice());
+    
+                                    // Add new transaction to the database
+                                    transactionRepository.save(transaction);
+                                    // Add new transaction ID to buyer and seller
+                                    seller.addTransaction(transaction.getId());
+                                    buyer.addTransaction(transaction.getId());
+    
+                                    // Update offer's queue
+                                    System.out.println("Queue before item sold: " + offer.getReservations());
+                                    offer.removeReservation(reservation.getId());
+                                    System.out.println("Queue after item sold" + offer.getReservations());
+    
+                                    // Check if there are still offers available
+                                    if (offer.isCompleted()) {
+    
+                                        // All items of this offer are sold. Delete this offer from seller.
+                                        // TODO: Maybe create a PastOffers List of Seller and add it to this.
+                                        //  Currently, it does NOT delete the offer from DB, just saves with 0 items.
+                                        seller.removeOffer(offerID);
+    
+                                        sellerRepository.save(seller);
+                                        offerRepository.save(offer);
+                                        buyerRepository.save(buyer);
+    
+                                        return new ResponseEntity<>(new MessageResponse("Last of the offer successfully sold"),
+                                                HttpStatus.OK);
+                                    } else {
+                                        // More items available
+                                        offerRepository.save(offer);
+                                        sellerRepository.save(seller);
+                                        buyerRepository.save(buyer);
+                                        return new ResponseEntity<>(new MessageResponse("Available offer count successfully decremented"),
+                                                HttpStatus.OK);
+                                    }
+    
                                 } else {
-
-                                    // More items available
-                                    offerRepository.save(offer);
-                                    sellerRepository.save(seller);
-                                    buyerRepository.save(buyer);
-                                    return new ResponseEntity<>(new MessageResponse("Available offer count successfully decremented"),
-                                            HttpStatus.OK);
+                                    System.err.println("Item count was not valid after decrementing: "
+                                            + offer.getItemCount());
+                                    return new ResponseEntity<>(new MessageResponse("Item count was not valid after decrementing"),
+                                            HttpStatus.CONFLICT);
                                 }
-
+    
                             } else {
-                                System.err.println("Item count was not valid after decrementing: "
-                                        + offer.getItemCount());
-                                return new ResponseEntity<>(new MessageResponse("Item count was not valid after decrementing"),
-                                        HttpStatus.CONFLICT);
+                                System.err.println("First buyer from the queue does not exist.");
+                                return new ResponseEntity<>(new MessageResponse("First buyer from the queue does not exist"),
+                                        HttpStatus.NOT_FOUND);
                             }
-
+    
                         } else {
-                            System.err.println("First buyer from the queue does not exist.");
-                            return new ResponseEntity<>(new MessageResponse("First buyer from the queue does not exist"),
-                                    HttpStatus.NOT_FOUND);
+                            System.err.println("No reservations have been made for this item yet.");
+                            System.err.println("Reservation queue: " + offer.getReservations());
+                            return new ResponseEntity<>(new MessageResponse("No reservations have been made for this item yet"),
+                                    HttpStatus.EXPECTATION_FAILED);
                         }
-
-                    } else {
-                        System.err.println("No reservations have been made for this item yet.");
-                        System.err.println("Reservation queue: " + offer.getReservations());
-                        return new ResponseEntity<>(new MessageResponse("No reservations have been made for this item yet"),
-                                HttpStatus.EXPECTATION_FAILED);
+                    }
+                    else{
+                        System.err.println("Specified reservation does not exist in database.");
+                        return new ResponseEntity<>("Specified reservation does not exist in database.",HttpStatus.EXPECTATION_FAILED);
                     }
 
                 } else {
-                    System.err.println("Specified offer not found.");
-                    return new ResponseEntity<>(new MessageResponse("Specified offer not found"), HttpStatus.NOT_FOUND);
+                    System.err.println("Specified offer not found in database.");
+                    return new ResponseEntity<>(new MessageResponse("Specified offer not found in database"), HttpStatus.NOT_FOUND);
                 }
 
             } else{
-                System.err.println("Specified offer not found.");
-                return new ResponseEntity<>(new MessageResponse("Specified offer not found"), HttpStatus.NOT_FOUND);
+                System.err.println("Specified offer not found in seller's offer list.");
+                return new ResponseEntity<>(new MessageResponse("Specified offer not found in seller's offer list"), HttpStatus.NOT_FOUND);
             }
 
         }
