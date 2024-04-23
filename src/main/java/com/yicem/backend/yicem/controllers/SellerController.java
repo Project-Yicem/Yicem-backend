@@ -98,11 +98,11 @@ public class SellerController {
         }
     }
 
-    @PostMapping("/{seller}/markSold/{offerID}")
+    @PostMapping("/{seller}/markSold/{offerID}/{reservationID}")
     public ResponseEntity<?> markOfferSold(@PathVariable("seller") String sellerID,
-    @PathVariable("offerID") String offerID) {
+    @PathVariable("offerID") String offerID, @PathVariable("reservationID") String reservationID) {
         if (checkSellerAuthenticaton(sellerID)) {
-            return sellerService.markOfferSold(sellerID, offerID);    
+            return sellerService.markOfferSold(sellerID, offerID, reservationID);    
         }
         else{
             return new ResponseEntity<>("Access denied to the specified object.", HttpStatus.FORBIDDEN);
