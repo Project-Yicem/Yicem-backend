@@ -101,8 +101,6 @@ public class BuyerService {
                     offer.addReservation(newReservation.getId());
                     buyer.addReservation(newReservation.getId());
 
-                    offer.setReserved(true);
-
                     offerRepository.save(offer);
                     buyerRepository.save(buyer);
 
@@ -392,7 +390,6 @@ public class BuyerService {
             List<String> reservationIds = buyer.getActiveReservations();
             List<Reservation> reservations = reservationRepository.findAllById(reservationIds);
             List<ReservationResponse> responseList = new ArrayList<>();
-            // TODO: We need reservationId, sellerName, offerName, offerPrice, timeslot for all of these reservations.
             for(Reservation reservation : reservations){
                 String reservationId = reservation.getId();
                 String timeslot, sellerName, offerName;

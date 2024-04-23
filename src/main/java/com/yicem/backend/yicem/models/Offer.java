@@ -27,7 +27,6 @@ public class Offer {
     private List<PickupTime> pickupTimes;
 
     // Will have default (false, false, now, emptyList) values at initialization
-    private boolean isReserved;
     private boolean isCompleted;
     private Date offeredAt;
     private List<String> reservations;
@@ -47,7 +46,6 @@ public class Offer {
         }
         this.pickupTimes = request.getPickupTimes();
 
-        this.isReserved = false;
         this.isCompleted = false;
         this.offeredAt = new Date();
         this.reservations = new ArrayList<>();
@@ -76,7 +74,6 @@ public class Offer {
         this.pickupTimes = pickupTimes;
 
         // Set values for new offers
-        this.isReserved = false;
         this.isCompleted = false;
         this.offeredAt = new Date();
         this.reservations = new ArrayList<>();
