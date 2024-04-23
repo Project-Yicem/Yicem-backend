@@ -121,6 +121,50 @@ public class BuyerService {
 
     }
 
+    public ResponseEntity<?> cancelReservation(HttpHeaders header, String reservationId) {
+        String buyerId = userService.getIdFromHeader(header);
+
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if(buyerOptional.isPresent()) { // Buyer exists in DB
+            Buyer buyer = buyerOptional.get();
+
+            if(buyer.getActiveReservations().contains(reservationId)) { // Buyer has THIS reservation
+
+                Optional<Reservation> reservationOptional = reservationRepository.findById(reservationId);
+                if(reservationOptional.isPresent()) { // reservationId exists in reservations table
+                    Reservation reservation = reservationOptional.get();
+
+                    buyer.removeReservation(reservationId);
+                    buyerRepository.save(buyer);
+
+                    Optional<Offer> offerOptional = offerRepository.findById(reservation.getOfferId());
+                    if(offerOptional.isPresent()) { // Offer of this reservation exists
+                        Offer offer = offerOptional.get();
+
+                        offer.removeReservation(reservationId);
+                        offerRepository.save(offer);
+
+                        reservationRepository.deleteById(reservationId);
+                        return ResponseEntity.ok(
+                                new MessageResponse("Reservation:" + reservationId + " has been cancelled"));
+                    } else { // Offer of this reservation DNE
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(new MessageResponse("Offer:" + reservation.getOfferId() + " is not found"));
+                    }
+                } else { // reservationId DNE in reservations table
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("Reservation:" + reservationId + " is not found in DB"));
+                }
+            } else { // Buyer does not have reservationId in its activeReservations list
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("Buyer does not have reservation:" + reservationId + " in DB"));
+            }
+
+        } else { // buyerId DNE in buyers table
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
+        }
+    }
+
     public ResponseEntity<?> getPurchases(HttpHeaders header){
         String buyerId = userService.getIdFromHeader(header);
 

@@ -94,6 +94,11 @@ public class BuyerController {
         return buyerService.reserveTheOffer(header, offerId, timeSlot);
     }
 
+    @PostMapping("/cancel/{reservationId}")
+    public ResponseEntity<?> cancelReservation(@RequestHeader HttpHeaders header, @PathVariable String reservationId) {
+        return buyerService.cancelReservation(header, reservationId);
+    }
+
 
     @GetMapping("/purchases")
     public ResponseEntity<?> getPurchases(@RequestHeader HttpHeaders header){

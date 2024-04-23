@@ -117,7 +117,7 @@ public class Offer {
         this.reservations.add(reservationId);
     }
 
-    public void removeReservation(String reservationId) {
-        this.reservations.remove(reservationId);
+    public boolean removeReservation(String reservationId) {
+        return this.reservations.remove(reservationId);
     }
 }
