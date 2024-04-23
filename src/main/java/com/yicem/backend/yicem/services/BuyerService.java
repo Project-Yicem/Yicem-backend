@@ -4,6 +4,7 @@ import com.yicem.backend.yicem.models.*;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.payload.request.ReviewRequest;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
+import com.yicem.backend.yicem.payload.response.ReservationResponse;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.*;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -383,14 +385,49 @@ public class BuyerService {
         String buyerId = userService.getIdFromHeader(header);
 
         Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
-        if(buyerOptional.isPresent()){
+        if(buyerOptional.isPresent()){ // buyerId exists in Buyers table
             Buyer buyer = buyerOptional.get();
 
             List<String> reservationIds = buyer.getActiveReservations();
             List<Reservation> reservations = reservationRepository.findAllById(reservationIds);
+            List<ReservationResponse> responseList = new ArrayList<>();
+            // TODO: We need reservationId, sellerName, offerName, offerPrice, timeslot for all of these reservations.
+            for(Reservation reservation : reservations){
+                String reservationId = reservation.getId();
+                String timeslot, sellerName, offerName;
+                float offerPrice;
 
-            return ResponseEntity.ok(reservations);
-        } else {
+                Optional<Reservation> reservationOptional = reservationRepository.findById(reservationId);
+                if(reservationOptional.isPresent()){
+                    timeslot = reservationOptional.get().getTimeSlot();
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("Reservation is not found"));
+                }
+
+                Optional<Seller> sellerOptional = sellerRepository.findById(reservation.getSellerId());
+                if(sellerOptional.isPresent()){
+                    sellerName = sellerOptional.get().getBusinessName();
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));
+                }
+
+                Optional<Offer> offerOptional = offerRepository.findById(reservation.getOfferId());
+                if(offerOptional.isPresent()){
+                    Offer offer = offerOptional.get();
+                    offerName = offer.getOfferName();
+                    offerPrice = offer.getPrice();
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Offer is not found"));
+                }
+
+                ReservationResponse response = new ReservationResponse(reservationId, sellerName, offerName, offerPrice,
+                        timeslot);
+                responseList.add(response);
+            }
+
+            return ResponseEntity.ok(responseList);
+        } else { // buyerId DNE in buyers
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
 
