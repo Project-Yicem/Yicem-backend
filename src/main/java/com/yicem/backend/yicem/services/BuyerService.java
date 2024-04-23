@@ -91,9 +91,8 @@ public class BuyerService {
             if(offerInstance.isPresent()){
                 Offer offer = offerInstance.get();
 
-                //TODO: Update this such that the buyer should be able to make a reservation for the same offer MORE
-                // THAN ONCE (Consider there must be enough available quantity for the offer)
-                if(!reservationRepository.existsByBuyerIdAndOfferId(buyerId, offerId)) { // Such reservation DNE in DB
+                //TODO: Change reservation structure, change timeslot with pickuptime
+                if(offer.getItemCount() > 0) { // Such reservation DNE in DB
 
                     Reservation newReservation = new Reservation(buyerId, offer.getSellerId(), offerId, timeSlot);
                     reservationRepository.save(newReservation);
@@ -102,14 +101,16 @@ public class BuyerService {
                     offer.addReservation(newReservation.getId());
                     buyer.addReservation(newReservation.getId());
 
+                    offer.setReserved(true);
+
                     offerRepository.save(offer);
                     buyerRepository.save(buyer);
 
                     return ResponseEntity.ok(new MessageResponse("Reservation made for " + timeSlot + " successfully"));
                 }
                 else { // This reservation already made and exists in DB
-                    return ResponseEntity.status(HttpStatus.CONFLICT)
-                            .body(new MessageResponse("Reservation already exists"));
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("There are no available offer left."));
                 }
             }
             else { // Offer is not in DB
