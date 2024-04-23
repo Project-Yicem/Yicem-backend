@@ -9,10 +9,7 @@ import com.yicem.backend.yicem.models.*;
 import com.yicem.backend.yicem.payload.request.OfferRequest;
 import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
 import com.yicem.backend.yicem.payload.request.SellerUpdateRequest;
-import com.yicem.backend.yicem.payload.response.MessageResponse;
-import com.yicem.backend.yicem.payload.response.OfferResponse;
-import com.yicem.backend.yicem.payload.response.ReservationResponse;
-import com.yicem.backend.yicem.payload.response.SellerResponse;
+import com.yicem.backend.yicem.payload.response.*;
 import com.yicem.backend.yicem.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -42,6 +39,8 @@ public class SellerService {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     public List<SellerResponse> getSellers(){
         List<Seller> sellers = sellerRepository.findAll();
@@ -288,7 +287,7 @@ public class SellerService {
     
                                     // Create new transaction object
                                     Transaction transaction = new Transaction(buyer.getId(),
-                                            seller.getId(), offer.getOfferName(), offer.getPrice());
+                                            seller.getId(), offer.getId(), offer.getPrice());
     
                                     // Add new transaction to the database
                                     transactionRepository.save(transaction);
@@ -372,21 +371,31 @@ public class SellerService {
         //Validate seller existence
         if (sellerOptional.isPresent()) {
             Seller seller = sellerOptional.get();
-            List<String> history = seller.getPastTransactions();
-            
-            if (!history.isEmpty() && history != null) {
-                return new ResponseEntity<>(history, HttpStatus.OK);
+
+            List<TransactionResponse> responses = new ArrayList<>();
+
+            List<Transaction> transactions = transactionRepository.findAllById(seller.getPastTransactions());
+            for (Transaction transaction : transactions) {
+                TransactionResponse transactionResponse = new TransactionResponse(transaction);
+
+                Optional<Buyer> buyerOptional = buyerRepository.findById(transaction.getBuyerId());
+                buyerOptional.ifPresent(buyer -> transactionResponse.setBuyerName(buyer.getUsername()));
+
+                Optional<Offer> offerOptional = offerRepository.findById(transaction.getOfferId());
+                offerOptional.ifPresent(offer -> transactionResponse.setOfferName(offer.getOfferName()));
+
+                Optional<Review> reviewOptional = reviewRepository.findById(transaction.getReview());
+                reviewOptional.ifPresent(transactionResponse::setReview);
+
+                responses.add(transactionResponse);
+
             }
-            else{
-                System.err.println("Past transaction list: " + history);
-                return new ResponseEntity<>(new MessageResponse("Past transaction list is either empty or null"),
-                        HttpStatus.EXPECTATION_FAILED);
-            }
-            
-        }       
-        else{
+            return new ResponseEntity<>(responses, HttpStatus.OK);
+
+        } else {
             return new ResponseEntity<>(new MessageResponse("Specified seller does not exist"), HttpStatus.NOT_FOUND);
         }
+
     }
 
     public ResponseEntity<?> changePassword(HttpHeaders header, PasswordChangeRequest passwordChangeRequest) {
