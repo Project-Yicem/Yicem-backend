@@ -17,6 +17,11 @@ public class Review {
 
     private String comment;
 
-    private float rating;
+    private int rating;
 
+    public Review(String transactionId, String comment, int rating) {
+        this.transactionId = transactionId;
+        this.comment = comment;
+        this.rating = rating;
+    }
 }

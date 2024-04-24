@@ -119,8 +119,9 @@ public class AuthController {
 
 						Seller seller = new Seller(user.getId(), signupRequest.getUsername(), signupRequest.isApproved(),
 								signupRequest.getAddress(), signupRequest.getPhone(), signupRequest.getBusinessName(),
-								signupRequest.getWorkingHours(), signupRequest.getLocationCoordinates(),
-								signupRequest.getReservationTimeout());
+								signupRequest.getOpeningHour(), signupRequest.getClosingHour(),
+								signupRequest.getLocationLatitude(), signupRequest.getLocationLongitude(),
+								signupRequest.getLogo(), signupRequest.getReservationTimeout());
 						sellerRepository.save(seller);
 
 						break;
@@ -178,9 +179,10 @@ public class AuthController {
 		user.setRoles(roles);
 		userRepository.save(user);
 
-		Seller seller = new Seller(user.getId(), signupRequest.getUsername(), signupRequest.isApproved(), signupRequest.getAddress(),
-				signupRequest.getPhone(), signupRequest.getBusinessName(), signupRequest.getWorkingHours(),
-				signupRequest.getLocationCoordinates(), signupRequest.getReservationTimeout());
+		Seller seller = new Seller(user.getId(), signupRequest.getUsername(), signupRequest.isApproved(),
+				signupRequest.getAddress(), signupRequest.getPhone(), signupRequest.getBusinessName(),
+				signupRequest.getOpeningHour(), signupRequest.getClosingHour(), signupRequest.getLocationLatitude(),
+				signupRequest.getLocationLongitude(), signupRequest.getLogo(), signupRequest.getReservationTimeout());
 		sellerRepository.save(seller);
 
 		return ResponseEntity.ok(new MessageResponse("Seller registered successfully!"));
@@ -217,7 +219,7 @@ public class AuthController {
 		user.setRoles(roles);
 		userRepository.save(user);
 
-		Buyer buyer = new Buyer(user.getId(), signupRequest.getUsername(), signupRequest.getEmail(), signupRequest.getPassword());
+		Buyer buyer = new Buyer(user.getId(), signupRequest.getUsername());
 		buyerRepository.save(buyer);
 
 		return ResponseEntity.ok(new MessageResponse("Buyer registered successfully!"));

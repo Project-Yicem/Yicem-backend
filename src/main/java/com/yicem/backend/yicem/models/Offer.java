@@ -1,140 +1,120 @@
 package com.yicem.backend.yicem.models;
 
+import com.yicem.backend.yicem.helpers.PickupTime;
+import com.yicem.backend.yicem.payload.request.OfferRequest;
 import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Document(collection = "offers")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@RequiredArgsConstructor
 public class Offer {
     @Id
-    @NonNull
     private String id;
 
-    @NonNull
+    // Will take their values from request
     private String sellerId;
-
-    @NonNull
-    private String description;
-
-    @NonNull
-    private boolean isMysteryBox;
-
-    @NonNull
-    private float price;
-
-    @NonNull
-    private int itemCount;
-
-    @NonNull
     private String offerName;
-
-
+    private String description;
+    private float price;
+    private int itemCount;
+    private boolean isMysteryBox;
     private List<String> categories;
+    private List<PickupTime> pickupTimes;
 
-    @NonNull
-    private boolean isReserved;
-
-    @NonNull
+    // Will have default (false, false, now, emptyList) values at initialization
     private boolean isCompleted;
-
-    @NonNull
     private Date offeredAt;
+    private List<String> reservations;
 
-    @NonNull
-    @DBRef
-    private List<Reservation> reservations;
-
-    public Offer(Offer newOffer){
-        this.description = newOffer.description;
-        this.isMysteryBox = newOffer.isMysteryBox;
-        this.price = newOffer.price;
-        this.itemCount = newOffer.itemCount;
-        this.offerName = newOffer.offerName;
-        if (newOffer.categories == null) {
-            this.categories = new ArrayList<String>();
+    public Offer(OfferRequest request, String sellerId) {
+        this.sellerId = sellerId;
+        this.offerName = request.getOfferName();
+        this.description = request.getDescription();
+        this.price = request.getPrice();
+        this.itemCount = request.getItemCount();
+        this.isMysteryBox = request.isMysteryBox();
+        this.categories = new ArrayList<>();
+        if( request.getCategories() != null && !request.getCategories().isEmpty()) {
+            this.categories = request.getCategories();
+        } else {
             this.categories.add("noCategory");
         }
-        else{
-            if (newOffer.categories.isEmpty()) {
-                this.categories = newOffer.categories;
-                this.categories.add("noCategory");
-            }
-            else{
-                this.categories = newOffer.categories;
-            }
-        }
-        // set values for new offers
-        this.isReserved = false;
+        this.pickupTimes = request.getPickupTimes();
+
         this.isCompleted = false;
         this.offeredAt = new Date();
-        this.reservations = new ArrayList<Reservation>();
+        this.reservations = new ArrayList<>();
     }
 
     public Offer(String description, boolean isMysteryBox, float price,
-     int itemCount, String offerName, List<String> categories ){
+     int itemCount, String offerName, List<String> categories, List<PickupTime> pickupTimes ){
         this.description = description;
         this.isMysteryBox = isMysteryBox;
         this.price = price;
         this.itemCount = itemCount;
         this.offerName = offerName;
         if (categories == null) {
-            this.categories = new ArrayList<String>();
-            this.categories.add("noCateegory");
+            this.categories = new ArrayList<>();
+            this.categories.add("noCategory");
         }
         else{
             if (categories.isEmpty()) {
                 this.categories = categories;
-                this.categories.add("noCateegory");
+                this.categories.add("noCategory");
             }
             else{
                 this.categories = categories;
             }
         }
-        // set values for new offers
-        this.isReserved = false;
+        this.pickupTimes = pickupTimes;
+
+        // Set values for new offers
         this.isCompleted = false;
         this.offeredAt = new Date();
-        this.reservations = new ArrayList<Reservation>();
+        this.reservations = new ArrayList<>();
     }
 
-    public void updateInfo(Offer newOffer){
+    public void updateInfo(OfferRequest request){
         // id, isReserved, isCompleted, offeredAt, and reservations are not updated
-        this.description = newOffer.description;
-        this.isMysteryBox = newOffer.isMysteryBox;
-        this.price = newOffer.price;
-        this.itemCount = newOffer.itemCount;
-        this.offerName = newOffer.offerName;
-        this.categories = newOffer.categories;
+        this.offerName = request.getOfferName();
+        this.description = request.getDescription();
+        this.price = request.getPrice();
+        this.itemCount = request.getItemCount();
+        this.isMysteryBox = request.isMysteryBox();
+        if (request.getCategories() != null) {
+            this.categories = request.getCategories();
+        }
+        if (this.categories.isEmpty()) {
+            this.categories.add("noCategory");
+        }
+        this.pickupTimes = request.getPickupTimes();
+
     }
 
     /**
      * Decrement the offer's available item count by 1 and update isCompleted
      * @return true if updated itemCount is valid, false otherwise
      */
-    public boolean decrementItemCount(){
-        this.itemCount -= 1;
-        if (itemCount == 0) {
-            this.isCompleted = true;
+    public boolean sellItem() {
+
+        if(this.itemCount > 0) {
+            this.itemCount--;
+            this.isCompleted = itemCount == 0;
             return true;
         }
-        else if(itemCount > 0){
-            this.isCompleted = false;
-            return true;
-        }
-        else{
-            System.err.println("ERROR: Item count is negative.");
-            return false;
-        }
+        else return false;
     }
 
+    public void addReservation(String reservationId) {
+        this.reservations.add(reservationId);
+    }
+
+    public boolean removeReservation(String reservationId) {
+        return this.reservations.remove(reservationId);
+    }
 }

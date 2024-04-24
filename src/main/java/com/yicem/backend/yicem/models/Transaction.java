@@ -13,28 +13,25 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction {
+
     @Id
     private String id;
 
     private String buyerId;
-
     private String sellerId;
-
-    private String itemName;
-
+    private String offerId;
     private float price;
-
-    private Review review;
-
     private Date transactionDate;
 
-    public Transaction(String buyerId, String sellerId, String itemName, float price){
+    // It will be initialized as NULL and change if buyer makes a review.
+    private String review;
+
+    public Transaction(String buyerId, String sellerId, String offerId, float price) {
         this.buyerId = buyerId;
         this.sellerId = sellerId;
-        this.itemName = itemName;
+        this.offerId = offerId;
         this.price = price;
-        // initially set values
-        this.review = null;
         this.transactionDate = new Date();
+        this.review = "";
     }
 }

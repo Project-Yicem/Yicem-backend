@@ -1,12 +1,13 @@
 package com.yicem.backend.yicem.controllers;
 
 import com.yicem.backend.yicem.models.Buyer;
-import com.yicem.backend.yicem.models.Offer;
-import com.yicem.backend.yicem.models.Seller;
+import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
+import com.yicem.backend.yicem.payload.request.ReviewRequest;
+import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.BuyerRepository;
-import com.yicem.backend.yicem.repositories.SellerRepository;
 import com.yicem.backend.yicem.repositories.UserRepository;
 import com.yicem.backend.yicem.services.BuyerService;
+import com.yicem.backend.yicem.services.SellerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -27,9 +28,10 @@ public class BuyerController {
     private BuyerRepository buyerRepository;
 
     @Autowired
-    private SellerRepository sellerRepository;
-
     private final BuyerService buyerService;
+
+    @Autowired
+    private final SellerService sellerService;
 
     @PutMapping("/update-username")
     public ResponseEntity<?> updateUsername(@RequestHeader HttpHeaders header, @RequestBody String newUsername){
@@ -37,8 +39,9 @@ public class BuyerController {
     }
 
     @PutMapping("/update-password")
-    public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header, @RequestBody String newPassword){
-        return buyerService.changePassword(header, newPassword);
+    public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header,
+                                            @RequestBody PasswordChangeRequest passwordChangeRequest) {
+        return buyerService.changePassword(header, passwordChangeRequest);
     }
 
     @GetMapping("/all")
@@ -58,8 +61,13 @@ public class BuyerController {
     }
 
     @GetMapping("/view-businesses")
-    public List<Seller> getSellers(){
-        return buyerService.listAllApproved();
+    public List<SellerResponse> getSellers(){
+        return sellerService.getApprovedSellers();
+    }
+
+    @GetMapping("/reservations")
+    public ResponseEntity<?> getActiveReservations(@RequestHeader HttpHeaders header){
+        return buyerService.getActiveReservations(header);
     }
 
     @GetMapping("/business/{businessId}/offers")
@@ -69,19 +77,26 @@ public class BuyerController {
 
 
     @GetMapping("/business/{businessId}/reviews")
-    public ResponseEntity<Object> getBusinessReviews(@PathVariable String businessId){
-        return buyerService.listAllReviewIdsOfBusiness(businessId);
+    public ResponseEntity<?> getBusinessReviews(@PathVariable String businessId){
+        return buyerService.getReviewsOfBusiness(businessId);
     }
 
     @PostMapping("/business/{businessId}/report")
-    public ResponseEntity<?> reportTheBusiness(@PathVariable String businessId, @RequestParam String reportDescription){
-        return buyerService.reportBusiness(businessId, reportDescription);
+    public ResponseEntity<?> reportTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String businessId,
+                                               @RequestParam String reportDescription){
+        return buyerService.reportBusiness(header, businessId, reportDescription);
     }
 
 
     @PostMapping("/reserve/{offerId}")
-    public ResponseEntity<Object> reserveTheOffer(@RequestHeader HttpHeaders header, @PathVariable String offerId, @RequestParam String timeSlot){
+    public ResponseEntity<Object> reserveTheOffer(@RequestHeader HttpHeaders header, @PathVariable String offerId,
+                                                  @RequestParam String timeSlot){
         return buyerService.reserveTheOffer(header, offerId, timeSlot);
+    }
+
+    @PostMapping("/cancel/{reservationId}")
+    public ResponseEntity<?> cancelReservation(@RequestHeader HttpHeaders header, @PathVariable String reservationId) {
+        return buyerService.cancelReservation(header, reservationId);
     }
 
 
@@ -90,15 +105,21 @@ public class BuyerController {
         return buyerService.getPurchases(header);
     }
 
-    @PostMapping("/{transactionId}/review")
-    public ResponseEntity<?> reviewTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String transactionId, @RequestParam String comment, @RequestParam float rating){
-        return buyerService.reviewBusiness(header, transactionId, comment, rating);
+    @PostMapping("/review/{transactionId}")
+    public ResponseEntity<?> reviewTheBusiness(@RequestHeader HttpHeaders header, @PathVariable String transactionId,
+                                               @RequestBody ReviewRequest request){
+        return buyerService.reviewBusiness(header, transactionId, request);
     }
 
 
     @PostMapping("/favorite/{businessId}")
     public ResponseEntity<?> addFavorite(@RequestHeader HttpHeaders header, @PathVariable String businessId){
         return buyerService.addToFavorites(header, businessId);
+    }
+
+    @PostMapping("/unfavorite/{businessId}")
+    public ResponseEntity<?> removeFavorite(@RequestHeader HttpHeaders header, @PathVariable String businessId){
+        return buyerService.removeFromFavorites(header, businessId);
     }
 
     @GetMapping("/favorites")

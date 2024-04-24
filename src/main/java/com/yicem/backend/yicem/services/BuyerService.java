@@ -1,16 +1,18 @@
 package com.yicem.backend.yicem.services;
 
 import com.yicem.backend.yicem.models.*;
+import com.yicem.backend.yicem.payload.request.PasswordChangeRequest;
+import com.yicem.backend.yicem.payload.request.ReviewRequest;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
+import com.yicem.backend.yicem.payload.response.ReservationResponse;
+import com.yicem.backend.yicem.payload.response.SellerResponse;
 import com.yicem.backend.yicem.repositories.*;
-import com.yicem.backend.yicem.security.jwt.JwtUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,270 +45,389 @@ public class BuyerService {
     @Autowired
     private ReportRepository reportRepository;
 
-    private JwtUtils jwtUtils;
+    @Autowired
+    private SellerService sellerService;
 
-    private String parseJwt(HttpHeaders header) {
-        if(header.get("Authorization") != null){
-            String token = header.get("Authorization").get(0);
+    @Autowired
+    private UserService userService;
 
-            if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-                return token.substring(7, token.length());
-            }
-        }
-
-        return null;
+    public List<SellerResponse> listAllApproved(){
+        return sellerService.getApprovedSellers();
     }
 
-    public List<Seller> listAllApproved(){
-        return sellerRepository.findByIsApproved(true);
-    }
-
-    //checks whether the business with given id exists, if business exits then returns the list of offer id's
-    public ResponseEntity<Object> listAllOfferIdsOfBusiness(String businessId){
+    // Checks whether the business with given id exists. If business exists, then returns the list of offerIDs.
+    public ResponseEntity<Object> listAllOfferIdsOfBusiness(String businessId) {
         Optional<Seller> sellerInstance = sellerRepository.findById(businessId);
-        if(sellerInstance.isPresent()){
+        if (sellerInstance.isPresent()) {
             Seller seller = sellerInstance.get();
-            List<Offer> res = getOffersFromTheirIds(seller.getCurrentOffers());
+            List<Offer> res = offerRepository.findAllById(seller.getOffers());
             return ResponseEntity.ok(res);
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Business is not found");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Business is not found"));
         }
 
     }
 
-    public List<Offer> getOffersFromTheirIds(List<String> ids){
-        List<Offer> offerList = new ArrayList<>();
-        for(String id : ids){
-            Offer offer = offerRepository.findById(id).get();
-            offerList.add(offer);
-        }
-
-        return offerList;
-    }
-
-
-    public ResponseEntity<Object> listAllReviewIdsOfBusiness(String businessId){
+    public ResponseEntity<?> getReviewsOfBusiness(String businessId){
         Optional<Seller> sellerInstance = sellerRepository.findById(businessId);
         if(sellerInstance.isPresent()){
             Seller seller = sellerInstance.get();
-            return ResponseEntity.ok(seller.getReviews());
+            List<Review> reviews = reviewRepository.findAllById(seller.getReviews());
+            return ResponseEntity.ok(reviews);
         }
         else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Business is not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Business is not found"));
         }
     }
 
     public ResponseEntity<Object> reserveTheOffer(HttpHeaders header, String offerId, String timeSlot){
-        String token = parseJwt(header);
-        if(token == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
+        String buyerId = userService.getIdFromHeader(header);
+
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if(buyerOptional.isPresent()) { // Buyer exists in DB
+            Buyer buyer = buyerOptional.get();
+
+            Optional<Offer> offerInstance = offerRepository.findById(offerId);
+            if(offerInstance.isPresent()){
+                Offer offer = offerInstance.get();
+
+                //TODO: Change reservation structure, change timeslot with pickuptime
+                if(offer.getItemCount() > 0) { // Such reservation DNE in DB
+
+                    Reservation newReservation = new Reservation(buyerId, offer.getSellerId(), offerId, timeSlot);
+                    reservationRepository.save(newReservation);
+
+                    // Add new reservation's ID to the related models
+                    offer.addReservation(newReservation.getId());
+                    buyer.addReservation(newReservation.getId());
+
+                    offerRepository.save(offer);
+                    buyerRepository.save(buyer);
+
+                    return ResponseEntity.ok(new MessageResponse("Reservation made for " + timeSlot + " successfully"));
+                }
+                else { // This reservation already made and exists in DB
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("There are no available offer left."));
+                }
+            }
+            else { // Offer is not in DB
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Offer is not found"));
+            }
+
+        }
+        else { // Buyer is not in DB
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
 
-        String buyerId = jwtUtils.getIdFromJwtToken(token);
-        Optional<Offer> offerInstance = offerRepository.findById(offerId);
+    }
 
-        if(offerInstance.isPresent()){
-            Offer offer = offerInstance.get();
-            Reservation newReservation = new Reservation();
-            newReservation.setBuyerId(buyerId);
-            newReservation.setSellerId(offer.getSellerId());
-            newReservation.setTimeSlot(timeSlot);
-            offer.getReservations().add(newReservation);
-            reservationRepository.save(newReservation);
-            offerRepository.save(offer);
+    public ResponseEntity<?> cancelReservation(HttpHeaders header, String reservationId) {
+        String buyerId = userService.getIdFromHeader(header);
 
-            return ResponseEntity.ok("Reservation made for " + timeSlot + " successfully.");
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Offer is not found");
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if(buyerOptional.isPresent()) { // Buyer exists in DB
+            Buyer buyer = buyerOptional.get();
+
+            if(buyer.getActiveReservations().contains(reservationId)) { // Buyer has THIS reservation
+
+                Optional<Reservation> reservationOptional = reservationRepository.findById(reservationId);
+                if(reservationOptional.isPresent()) { // reservationId exists in reservations table
+                    Reservation reservation = reservationOptional.get();
+
+                    buyer.removeReservation(reservationId);
+                    buyerRepository.save(buyer);
+
+                    Optional<Offer> offerOptional = offerRepository.findById(reservation.getOfferId());
+                    if(offerOptional.isPresent()) { // Offer of this reservation exists
+                        Offer offer = offerOptional.get();
+
+                        offer.removeReservation(reservationId);
+                        offerRepository.save(offer);
+
+                        reservationRepository.deleteById(reservationId);
+                        return ResponseEntity.ok(
+                                new MessageResponse("Reservation:" + reservationId + " has been cancelled"));
+                    } else { // Offer of this reservation DNE
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(new MessageResponse("Offer:" + reservation.getOfferId() + " is not found"));
+                    }
+                } else { // reservationId DNE in reservations table
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("Reservation:" + reservationId + " is not found in DB"));
+                }
+            } else { // Buyer does not have reservationId in its activeReservations list
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("Buyer does not have reservation:" + reservationId + " in DB"));
+            }
+
+        } else { // buyerId DNE in buyers table
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
     }
 
     public ResponseEntity<?> getPurchases(HttpHeaders header){
-        String token = parseJwt(header);
-        if(token == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
-        }
-
-        String buyerId = jwtUtils.getIdFromJwtToken(token);
+        String buyerId = userService.getIdFromHeader(header);
 
         Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
         if(buyerInstance.isPresent()){
             Buyer buyer = buyerInstance.get();
-
-            return ResponseEntity.ok(buyer.getPastTransactions());
+            List<Transaction> res = transactionRepository.findAllById(buyer.getPastTransactions());
+            return ResponseEntity.ok(res);
         }
-        else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Buyer is not found");
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
     }
 
     public ResponseEntity<?> changeUsername(HttpHeaders header, String newUsername){
-        String token = parseJwt(header);
-        if(token == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
-        }
-
-        String userId = jwtUtils.getIdFromJwtToken(token);
+        String userId = userService.getIdFromHeader(header);
 
         Optional<User> userInstance = userRepository.findById(userId);
         Optional<Buyer> buyerInstance = buyerRepository.findById(userId);
-        if(userInstance.isPresent()){
+
+        if(userInstance.isPresent() && buyerInstance.isPresent()) {
             User user = userInstance.get();
             Buyer buyer = buyerInstance.get();
 
             user.setUsername(newUsername);
             buyer.setUsername(newUsername);
+
             userRepository.save(user);
             buyerRepository.save(buyer);
 
-            return ResponseEntity.ok("Username changed");
+            return ResponseEntity.ok(new MessageResponse("Username changed"));
         }
         else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("User is not found"));
         }
     }
 
-    public ResponseEntity<?> changePassword(HttpHeaders header, String newPassword){
-        String token = parseJwt(header);
-        if(token == null){
+    public ResponseEntity<?> changePassword(HttpHeaders header, PasswordChangeRequest passwordChangeRequest) {
+
+        String userId = userService.getIdFromHeader(header);
+        if(userId.isEmpty()){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
         }
 
-        String userId = jwtUtils.getIdFromJwtToken(token);
+        Optional<Buyer> buyerOptional = buyerRepository.findById(userId);
 
-        Optional<User> userInstance = userRepository.findById(userId);
-        Optional<Buyer> buyerInstance = buyerRepository.findById(userId);
-        if(userInstance.isPresent()){
-            User user = userInstance.get();
-            Buyer buyer = buyerInstance.get();
-
-            user.setPassword(newPassword);
-            buyer.setPassword(newPassword);
-            userRepository.save(user);
-            buyerRepository.save(buyer);
-
-            return ResponseEntity.ok("Password changed");
+        if(buyerOptional.isPresent()){
+            return userService.changePassword(header, passwordChangeRequest);
         }
         else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User is not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Buyer is not found");
         }
     }
 
     public ResponseEntity<?> getFavorites(HttpHeaders header){
-        String token = parseJwt(header);
-        if(token == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
-        }
-
-        String buyerId = jwtUtils.getIdFromJwtToken(token);
+        String buyerId = userService.getIdFromHeader(header);
 
         Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
         if(buyerInstance.isPresent()){
             Buyer buyer = buyerInstance.get();
-
-            return ResponseEntity.ok(buyer.getFavoriteSellers());
+            List<Seller> sellers = sellerRepository.findAllById(buyer.getFavoriteSellers());
+            List<SellerResponse> res = sellerService.getSellersFromList(sellers);
+            return ResponseEntity.ok(res);
         }
         else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Buyer is not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
     }
 
-    public ResponseEntity<?> addToFavorites(HttpHeaders header, String businessId){
-        String token = parseJwt(header);
-        if(token == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
-        }
-
-        String buyerId = jwtUtils.getIdFromJwtToken(token);
+    public ResponseEntity<?> addToFavorites(HttpHeaders header, String businessId) {
+        String buyerId = userService.getIdFromHeader(header);
 
         Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
+        if(buyerInstance.isPresent()){
+            Buyer buyer = buyerInstance.get();
 
+            if (sellerRepository.findById(businessId).isPresent()){ // Seller exists in DB
+
+                if( buyer.addFavoriteSeller(businessId) ) {
+                    buyerRepository.save(buyer);
+                    return ResponseEntity.ok(new MessageResponse("Restaurant is added to favorites"));
+                }
+                else {
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body(new MessageResponse("Error: Already exists in favorites"));
+                }
+
+            }
+            else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));
+            }
+
+        }
+        else{
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
+        }
+
+    }
+
+    public ResponseEntity<?> removeFromFavorites(HttpHeaders header, String businessId) {
+        String buyerId = userService.getIdFromHeader(header);
+
+        Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
         if(buyerInstance.isPresent()){
             Buyer buyer = buyerInstance.get();
 
             if (sellerRepository.findById(businessId).isPresent()){
-                Seller favoritedSeller = sellerRepository.findById(businessId).get();
 
-                if(buyer.getFavoriteSellers() == null){
-                    List<Seller> newList = new ArrayList<>();
-                    newList.add(favoritedSeller);
-                    buyer.setFavoriteSellers(newList);
+                if( buyer.removeFavoriteSeller(businessId) ) {
+                    buyerRepository.save(buyer);
+                    return ResponseEntity.ok(new MessageResponse("Seller is removed from favorites"));
+                } else {
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body(new MessageResponse("Error: Not in favorites"));
                 }
-                else{
-                    buyer.getFavoriteSellers().add(favoritedSeller);
-                }
-                buyerRepository.save(buyer);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));
             }
-            else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Seller is not found");
-            }
-
-            return ResponseEntity.ok("Restaurant is added to favorites");
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Buyer is not found");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
     }
 
-    public ResponseEntity<?> reviewBusiness(HttpHeaders header, String transactionId, String comment, float rating){
-        String token = parseJwt(header);
-        if(token == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Error: There is no valid token"));
-        }
-        String buyerId = jwtUtils.getIdFromJwtToken(token);
+    public ResponseEntity<?> reviewBusiness(HttpHeaders header, String transactionId, ReviewRequest reviewRequest){
 
-        Buyer buyer = buyerRepository.findById(buyerId).get();
-        Transaction transaction = transactionRepository.findById(transactionId).get();
-        Seller seller = sellerRepository.findById(transaction.getSellerId()).get();
-
-        Review review = new Review();
-        review.setTransactionId(transactionId);
-        review.setComment(comment);
-        review.setRating(rating);
-
-        reviewRepository.save(review);
-
-        if(buyer.getReviews() == null){
-            List<Review> newList = new ArrayList<>();
-            newList.add(review);
-            buyer.setReviews(newList);
-        }
-        else {
-            buyer.getReviews().add(review);
+        String buyerId = userService.getIdFromHeader(header);
+        if(buyerId.isEmpty()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Error: There is no valid token"));
         }
 
-        if(seller.getReviews() == null){
-            List<Review> newList = new ArrayList<>();
-            newList.add(review);
-            seller.setReviews(newList);
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if(buyerOptional.isPresent()){ // Such Buyer exists in DB
+            Buyer buyer = buyerOptional.get();
+
+            if (buyer.getPastTransactions().contains(transactionId)) { // Buyer has this Transaction in pastTransactions
+
+                Optional<Transaction> transactionOptional = transactionRepository.findById(transactionId);
+                if(transactionOptional.isPresent()){ // Such Transaction exists in DB
+                    Transaction transaction = transactionOptional.get();
+
+                    if(transaction.getReview().isEmpty()) { // Is not reviewed yet.
+
+                        Optional<Seller> sellerOptional = sellerRepository.findById(transaction.getSellerId());
+                        if(sellerOptional.isPresent()){ // Such seller exists in DB -> ALL CONDITIONS ARE OK FOR PROCESS
+                            Seller seller = sellerOptional.get();
+
+                            String comment = reviewRequest.getComment();
+                            int rating = reviewRequest.getRating();
+
+                            Review review = new Review(transactionId, comment, rating);
+                            reviewRepository.save(review);
+
+                            buyer.addReview(review.getId());
+                            seller.addReview(review.getId(), review.getRating());
+                            transaction.setReview(review.getId());
+
+                            buyerRepository.save(buyer);
+                            sellerRepository.save(seller);
+                            transactionRepository.save(transaction);
+
+                            return ResponseEntity.ok(new MessageResponse("Review added successfully"));
+                        }
+                        else {
+                            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                    .body(new MessageResponse("Seller is not found"));
+                        }
+                    }
+                    else {
+                        return ResponseEntity.status(HttpStatus.CONFLICT)
+                                .body(new MessageResponse("This is already reviewed"));
+                    }
+
+                }
+                else { // This Transaction does not exist in DB
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("Transaction is not found"));
+                }
+
+            }
+            else { // This Buyer does not have such transaction.
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("Buyer does not have such transaction."));
+            }
+
         }
-        else {
-            seller.getReviews().add(review);
+        else { // This Buyer does not exist.
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
 
-        buyerRepository.save(buyer);
-        sellerRepository.save(seller);
-
-        return ResponseEntity.ok("Review has been made.");
     }
 
-    public ResponseEntity<?> reportBusiness(String businessId, String reportDesc){
-        Optional<Seller> sellerInstance = sellerRepository.findById(businessId);
-        if(sellerInstance.isPresent()){
-            Report report = new Report();
-            report.setReportedBusinessId(businessId);
-            report.setReportDescription(reportDesc);
+    public ResponseEntity<?> reportBusiness(HttpHeaders header, String businessId, String reportDesc) {
+        String buyerId = userService.getIdFromHeader(header);
 
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if(buyerOptional.isPresent()) { // Buyer is in DB
+            Buyer buyer = buyerOptional.get();
+
+            Report report = new Report(businessId, reportDesc);
             reportRepository.save(report);
-            return ResponseEntity.ok("Business is reported");
+
+            buyer.addSupportReport(report.getId());
+            buyerRepository.save(buyer);
+
+            return ResponseEntity.ok(new MessageResponse("Business is reported successfully"));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
         }
-        else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Business with given id is not found.");
-        }
+
     }
 
+    public ResponseEntity<?> getActiveReservations(HttpHeaders header) {
+        String buyerId = userService.getIdFromHeader(header);
+
+        Optional<Buyer> buyerOptional = buyerRepository.findById(buyerId);
+        if(buyerOptional.isPresent()){ // buyerId exists in Buyers table
+            Buyer buyer = buyerOptional.get();
+
+            List<String> reservationIds = buyer.getActiveReservations();
+            List<Reservation> reservations = reservationRepository.findAllById(reservationIds);
+            List<ReservationResponse> responseList = new ArrayList<>();
+            for(Reservation reservation : reservations){
+                String reservationId = reservation.getId();
+                String timeslot, sellerName, offerName;
+                float offerPrice;
+
+                Optional<Reservation> reservationOptional = reservationRepository.findById(reservationId);
+                if(reservationOptional.isPresent()){
+                    timeslot = reservationOptional.get().getTimeSlot();
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(new MessageResponse("Reservation is not found"));
+                }
+
+                Optional<Seller> sellerOptional = sellerRepository.findById(reservation.getSellerId());
+                if(sellerOptional.isPresent()){
+                    sellerName = sellerOptional.get().getBusinessName();
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));
+                }
+
+                Optional<Offer> offerOptional = offerRepository.findById(reservation.getOfferId());
+                if(offerOptional.isPresent()){
+                    Offer offer = offerOptional.get();
+                    offerName = offer.getOfferName();
+                    offerPrice = offer.getPrice();
+                } else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Offer is not found"));
+                }
+
+                ReservationResponse response = new ReservationResponse(reservationId, sellerName, offerName, offerPrice,
+                        timeslot);
+                responseList.add(response);
+            }
+
+            return ResponseEntity.ok(responseList);
+        } else { // buyerId DNE in buyers
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
+        }
+
+    }
 }

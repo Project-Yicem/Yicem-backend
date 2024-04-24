@@ -32,8 +32,11 @@ public class SellerSignupRequest {
     private String phone;
     @Size(max = 20)
     private String businessName;
-    private String workingHours;
-    private String locationCoordinates;
+    private String openingHour;
+    private String closingHour;
+    private String locationLatitude;
+    private String locationLongitude;
+    private String logo;
     private float reservationTimeout;
 
 }
