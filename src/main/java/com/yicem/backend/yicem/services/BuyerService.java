@@ -183,6 +183,9 @@ public class BuyerService {
 
                 transactionResponse.setBuyerName(buyer.getUsername());
 
+                Optional<Seller> sellerOptional = sellerRepository.findById(transaction.getSellerId());
+                sellerOptional.ifPresent(seller -> transactionResponse.setSellerName(seller.getBusinessName()));
+
                 Optional<Offer> offerOptional = offerRepository.findById(transaction.getOfferId());
                 offerOptional.ifPresent(offer -> transactionResponse.setOfferName(offer.getOfferName()));
 

@@ -19,6 +19,7 @@ public class TransactionResponse {
     private String buyerId;
     private String buyerName;
     private String sellerId;
+    private String sellerName;
     private String offerId;
     private String offerName;
     private float price;

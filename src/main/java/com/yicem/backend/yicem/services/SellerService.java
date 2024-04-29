@@ -378,6 +378,8 @@ public class SellerService {
             for (Transaction transaction : transactions) {
                 TransactionResponse transactionResponse = new TransactionResponse(transaction);
 
+                transactionResponse.setSellerName(seller.getBusinessName());
+
                 Optional<Buyer> buyerOptional = buyerRepository.findById(transaction.getBuyerId());
                 buyerOptional.ifPresent(buyer -> transactionResponse.setBuyerName(buyer.getUsername()));
 
