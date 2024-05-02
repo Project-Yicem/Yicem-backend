@@ -235,9 +235,13 @@ public class SellerService {
                     List<Reservation> reservationList = reservationRepository.findAllById(offer.getReservations());
                     List<ReservationResponse> reservationResponses = new ArrayList<>();
                     for (Reservation reservation : reservationList) {
-                        reservationResponses.add(new ReservationResponse(reservation.getId(),
-                                seller.getBusinessName(), offer.getOfferName(), offer.getPrice(),
-                                reservation.getTimeSlot()));
+                        Optional<Buyer> buyerOptional = buyerRepository.findById(reservation.getBuyerId());
+                        if (buyerOptional.isPresent()) {
+                            Buyer buyer = buyerOptional.get();
+                            reservationResponses.add( new ReservationResponse(reservation.getId(),
+                                    seller.getBusinessName(), buyer.getUsername(), offer.getOfferName(),
+                                    offer.getPrice(), reservation.getTimeSlot()));
+                        }
                     }
 
                     offerResponse.setReservations(reservationResponses);
