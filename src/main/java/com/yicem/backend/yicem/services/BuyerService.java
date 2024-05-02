@@ -440,8 +440,8 @@ public class BuyerService {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Offer is not found"));
                 }
 
-                ReservationResponse response = new ReservationResponse(reservationId, sellerName, offerName, offerPrice,
-                        timeslot);
+                ReservationResponse response = new ReservationResponse(reservationId, sellerName, buyer.getUsername(),
+                        offerName, offerPrice, timeslot);
                 responseList.add(response);
             }
 
