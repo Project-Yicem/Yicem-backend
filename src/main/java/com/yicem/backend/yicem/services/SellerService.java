@@ -290,8 +290,9 @@ public class SellerService {
                                     reservationRepository.deleteById(reservation.getId());
     
                                     // Create new transaction object
-                                    Transaction transaction = new Transaction(buyer.getId(),
-                                            seller.getId(), offer.getId(), offer.getPrice());
+                                    Transaction transaction = new Transaction(buyer.getId(), buyer.getUsername(),
+                                            seller.getId(), seller.getBusinessName(), offer.getId(),
+                                            offer.getOfferName(), offer.getPrice());
     
                                     // Add new transaction to the database
                                     transactionRepository.save(transaction);
@@ -381,14 +382,6 @@ public class SellerService {
             List<Transaction> transactions = transactionRepository.findAllById(seller.getPastTransactions());
             for (Transaction transaction : transactions) {
                 TransactionResponse transactionResponse = new TransactionResponse(transaction);
-
-                transactionResponse.setSellerName(seller.getBusinessName());
-
-                Optional<Buyer> buyerOptional = buyerRepository.findById(transaction.getBuyerId());
-                buyerOptional.ifPresent(buyer -> transactionResponse.setBuyerName(buyer.getUsername()));
-
-                Optional<Offer> offerOptional = offerRepository.findById(transaction.getOfferId());
-                offerOptional.ifPresent(offer -> transactionResponse.setOfferName(offer.getOfferName()));
 
                 Optional<Review> reviewOptional = reviewRepository.findById(transaction.getReview());
                 reviewOptional.ifPresent(transactionResponse::setReview);

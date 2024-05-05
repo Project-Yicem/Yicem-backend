@@ -29,8 +29,11 @@ public class TransactionResponse {
     public TransactionResponse(Transaction transaction) {
         this.id = transaction.getId();
         this.buyerId = transaction.getBuyerId();
+        this.buyerName = transaction.getBuyerName();
         this.sellerId = transaction.getSellerId();
+        this.sellerName = transaction.getSellerName();
         this.offerId = transaction.getOfferId();
+        this.offerName = transaction.getOfferName();
         this.price = transaction.getPrice();
         this.transactionDate = transaction.getTransactionDate();
     }
