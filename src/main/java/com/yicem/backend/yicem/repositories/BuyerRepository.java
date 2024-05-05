@@ -3,6 +3,7 @@ package com.yicem.backend.yicem.repositories;
 import com.yicem.backend.yicem.models.Buyer;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BuyerRepository extends MongoRepository<Buyer, String> {
@@ -10,4 +11,5 @@ public interface BuyerRepository extends MongoRepository<Buyer, String> {
 
     Boolean existsByUsername(String username);
 
+    Optional<Buyer> findByActiveReservationsContains(String reservationId);
 }

@@ -189,6 +189,19 @@ public class SellerService {
                     seller.removeOffer(offerID);
                     sellerRepository.save(seller);
 
+                    List<Reservation> reservations = reservationRepository.findAllByOfferId(offerID);
+                    for (Reservation reservation : reservations) {
+                        String reservationID = reservation.getId();
+                        Optional<Buyer> buyerOptional = buyerRepository.findByActiveReservationsContains(reservationID);
+                        if (buyerOptional.isPresent()) {
+                            Buyer buyer = buyerOptional.get();
+                            buyer.removeReservation(reservationID);
+
+                            buyerRepository.save(buyer);
+                        }
+                        reservationRepository.delete(reservation);
+                    }
+
                     offerRepository.deleteById(offerID);
 
                     return new ResponseEntity<>(new MessageResponse("Offer successfully deleted"), HttpStatus.OK);
