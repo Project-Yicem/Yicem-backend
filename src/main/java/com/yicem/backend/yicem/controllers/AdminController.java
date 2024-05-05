@@ -6,6 +6,7 @@ import com.yicem.backend.yicem.repositories.UserRepository;
 import com.yicem.backend.yicem.services.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class AdminController {
         return adminRepository.findAll();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete-admin/{id}")
     public String deleteAdmin(@PathVariable String id){
         if (adminRepository.existsById(id)) {
             adminRepository.deleteById(id);
@@ -43,23 +44,23 @@ public class AdminController {
     }
 
     @PostMapping("/approve-seller/{sellerId}")
-    public ResponseEntity<?> approveSellers(@PathVariable String sellerId){
-        return adminService.approveSellers(sellerId);
+    public ResponseEntity<?> approveSellers(@RequestHeader HttpHeaders header, @PathVariable String sellerId){
+        return adminService.approveSellers(header, sellerId);
     }
 
-    /*@DeleteMapping("/delete-seller/{sellerId}")
-    public ResponseEntity<?> deleteSeller(@PathVariable String sellerId){
-        return adminService.deleteSeller(sellerId);
+    @DeleteMapping("/delete-seller/{sellerId}")
+    public ResponseEntity<?> deleteSeller(@RequestHeader HttpHeaders header, @PathVariable String sellerId){
+        return adminService.deleteSeller(header, sellerId);
     }
 
     @DeleteMapping("/delete-buyer/{buyerId}")
-    public ResponseEntity<?> deleteBuyer(@PathVariable String buyerId){
-        return adminService.deleteBuyer(buyerId);
+    public ResponseEntity<?> deleteBuyer(@RequestHeader HttpHeaders header, @PathVariable String buyerId){
+        return adminService.deleteBuyer(header, buyerId);
     }
 
 
     @DeleteMapping("/delete-review/{reviewId}")
-    public ResponseEntity<?> deleteReview(@PathVariable String reviewId){
-        return adminService.deleteReview(reviewId);
-    }*/
+    public ResponseEntity<?> deleteReview(@RequestHeader HttpHeaders header, @PathVariable String reviewId){
+        return adminService.deleteReview(header, reviewId);
+    }
 }
