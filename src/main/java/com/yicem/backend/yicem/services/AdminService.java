@@ -35,6 +35,12 @@ public class AdminService {
     private TransactionRepository transactionRepository;
 
     @Autowired
+    private ReservationRepository reservationRepository;
+
+    @Autowired
+    private OfferRepository offerRepository;
+
+    @Autowired
     private SellerService sellerService;
 
     @Autowired
@@ -79,7 +85,16 @@ public class AdminService {
             Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
             if (buyerInstance.isPresent()) {
-                //TODO delete buyer's current reservations from db
+                Buyer buyer = buyerInstance.get();
+                List<String> buyersActiveReservations = buyer.getActiveReservations();
+                //Delete reservations of buyer and remove from offers active reservation list
+                for (String reservationId : buyersActiveReservations) {
+                    Reservation reservation = reservationRepository.findById(reservationId).get();
+                    Offer offer = offerRepository.findById(reservation.getOfferId()).get();
+                    offer.removeReservation(reservationId);
+                    offerRepository.save(offer);
+                    reservationRepository.deleteById(reservationId);
+                }
                 buyerRepository.deleteById(buyerId);
                 userRepository.deleteById(buyerId);
 
