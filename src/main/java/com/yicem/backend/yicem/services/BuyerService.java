@@ -6,6 +6,7 @@ import com.yicem.backend.yicem.payload.request.ReviewRequest;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
 import com.yicem.backend.yicem.payload.response.ReservationResponse;
 import com.yicem.backend.yicem.payload.response.SellerResponse;
+import com.yicem.backend.yicem.payload.response.TransactionResponse;
 import com.yicem.backend.yicem.repositories.*;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,8 +174,20 @@ public class BuyerService {
 
         if(buyerInstance.isPresent()){
             Buyer buyer = buyerInstance.get();
-            List<Transaction> res = transactionRepository.findAllById(buyer.getPastTransactions());
-            return ResponseEntity.ok(res);
+
+            List<TransactionResponse> responses = new ArrayList<>();
+
+            List<Transaction> transactions = transactionRepository.findAllById(buyer.getPastTransactions());
+            for (Transaction transaction : transactions) {
+                TransactionResponse transactionResponse = new TransactionResponse(transaction);
+
+                Optional<Review> reviewOptional = reviewRepository.findById(transaction.getReview());
+                reviewOptional.ifPresent(transactionResponse::setReview);
+
+                responses.add(transactionResponse);
+
+            }
+            return ResponseEntity.ok(responses);
         }
         else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
@@ -419,8 +432,8 @@ public class BuyerService {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Offer is not found"));
                 }
 
-                ReservationResponse response = new ReservationResponse(reservationId, sellerName, offerName, offerPrice,
-                        timeslot);
+                ReservationResponse response = new ReservationResponse(reservationId, sellerName, buyer.getUsername(),
+                        offerName, offerPrice, timeslot);
                 responseList.add(response);
             }
 
