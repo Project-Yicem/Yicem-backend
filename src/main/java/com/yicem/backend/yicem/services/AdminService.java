@@ -79,7 +79,7 @@ public class AdminService {
             Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
             if (buyerInstance.isPresent()) {
-                //TODO remove buyer id from transaction?
+                //TODO delete buyer's current reservations from db
                 buyerRepository.deleteById(buyerId);
                 userRepository.deleteById(buyerId);
 
