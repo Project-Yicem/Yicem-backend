@@ -33,7 +33,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/delete-admin/{id}")
-    public String deleteAdmin(@PathVariable String id){
+    public String deleteAdmin(@PathVariable String id) {
         if (adminRepository.existsById(id)) {
             adminRepository.deleteById(id);
             userRepository.deleteById(id);
@@ -44,23 +44,23 @@ public class AdminController {
     }
 
     @PostMapping("/approve-seller/{sellerId}")
-    public ResponseEntity<?> approveSellers(@RequestHeader HttpHeaders header, @PathVariable String sellerId){
+    public ResponseEntity<?> approveSellers(@RequestHeader HttpHeaders header, @PathVariable String sellerId) {
         return adminService.approveSellers(header, sellerId);
     }
 
     @DeleteMapping("/delete-seller/{sellerId}")
-    public ResponseEntity<?> deleteSeller(@RequestHeader HttpHeaders header, @PathVariable String sellerId){
+    public ResponseEntity<?> deleteSeller(@RequestHeader HttpHeaders header, @PathVariable String sellerId) {
         return adminService.deleteSeller(header, sellerId);
     }
 
     @DeleteMapping("/delete-buyer/{buyerId}")
-    public ResponseEntity<?> deleteBuyer(@RequestHeader HttpHeaders header, @PathVariable String buyerId){
+    public ResponseEntity<?> deleteBuyer(@RequestHeader HttpHeaders header, @PathVariable String buyerId) {
         return adminService.deleteBuyer(header, buyerId);
     }
 
 
     @DeleteMapping("/delete-review/{reviewId}")
-    public ResponseEntity<?> deleteReview(@RequestHeader HttpHeaders header, @PathVariable String reviewId){
+    public ResponseEntity<?> deleteReview(@RequestHeader HttpHeaders header, @PathVariable String reviewId) {
         return adminService.deleteReview(header, reviewId);
     }
 }

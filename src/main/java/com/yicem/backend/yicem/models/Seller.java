@@ -56,7 +56,7 @@ public class Seller {
 
     public void addReview(String id, int rating) {
         // Check if review exists
-        if(!reviews.contains(id)) {
+        if (!reviews.contains(id)) {
             // Compute new rating score
             int reviewCount = reviews.size();
             float sum = this.rating * reviewCount + rating;
@@ -67,8 +67,14 @@ public class Seller {
         }
     }
 
+    public void updateReviewRating(int rating) {
+        int reviewCount = reviews.size();
+        float newSum = (this.rating * reviewCount) - rating;
+        this.rating = newSum / (reviewCount - 1);
+    }
+
     public void addOffer(String id) {
-        if(!offers.contains(id)) {
+        if (!offers.contains(id)) {
             this.offers.add(id);
         }
     }
@@ -78,7 +84,7 @@ public class Seller {
     }
 
     public void addTransaction(String id) {
-        if(!pastTransactions.contains(id)) {
+        if (!pastTransactions.contains(id)) {
             this.pastTransactions.add(id);
         }
     }

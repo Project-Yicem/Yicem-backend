@@ -40,45 +40,42 @@ public class AdminService {
     @Autowired
     private UserService userService;
 
-    public ResponseEntity<?> approveSellers(HttpHeaders header, String sellerId){
+    public ResponseEntity<?> approveSellers(HttpHeaders header, String sellerId) {
         String adminId = userService.getIdFromHeader(header);
 
         Optional<Admin> adminOptional = adminRepository.findById(adminId);
-        if(adminOptional.isPresent()) {
+        if (adminOptional.isPresent()) {
             Optional<Seller> sellerInstance = sellerRepository.findById(sellerId);
 
-            if(sellerInstance.isPresent()){
+            if (sellerInstance.isPresent()) {
                 Seller seller = sellerInstance.get();
                 seller.setApproved(true);
                 sellerRepository.save(seller);
                 return ResponseEntity.ok("Seller is approved");
-            }
-            else {
+            } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));
             }
-        }
-        else{
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
         }
     }
 
-    public ResponseEntity<?> deleteSeller(HttpHeaders header, String sellerId){
+    public ResponseEntity<?> deleteSeller(HttpHeaders header, String sellerId) {
         String adminId = userService.getIdFromHeader(header);
 
         Optional<Admin> adminOptional = adminRepository.findById(adminId);
-        if(adminOptional.isPresent()) {
+        if (adminOptional.isPresent()) {
             return sellerService.deleteSeller(sellerId);
-        }
-        else{
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
         }
     }
 
-    public ResponseEntity<?> deleteBuyer(HttpHeaders header, String buyerId){
+    public ResponseEntity<?> deleteBuyer(HttpHeaders header, String buyerId) {
         String adminId = userService.getIdFromHeader(header);
 
         Optional<Admin> adminOptional = adminRepository.findById(adminId);
-        if(adminOptional.isPresent()) {
+        if (adminOptional.isPresent()) {
             Optional<Buyer> buyerInstance = buyerRepository.findById(buyerId);
 
             if (buyerInstance.isPresent()) {
@@ -90,39 +87,38 @@ public class AdminService {
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Buyer is not found"));
             }
-        }
-        else {
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
         }
     }
 
 
-    public ResponseEntity<?> deleteReview(HttpHeaders header, String reviewId){
+    public ResponseEntity<?> deleteReview(HttpHeaders header, String reviewId) {
         String adminId = userService.getIdFromHeader(header);
 
         Optional<Admin> adminOptional = adminRepository.findById(adminId);
-        if(adminOptional.isPresent()) {
+        if (adminOptional.isPresent()) {
             Optional<Review> reviewInstance = reviewRepository.findById(reviewId);
 
-            if (reviewInstance.isPresent()){
+            if (reviewInstance.isPresent()) {
                 Review review = reviewInstance.get();
                 String transactionId = review.getTransactionId();
 
-                if(transactionRepository.findById(transactionId).isPresent()){
+                if (transactionRepository.findById(transactionId).isPresent()) {
                     Transaction transaction = transactionRepository.findById(transactionId).get();
                     String sellerId = transaction.getSellerId();
                     String buyerId = transaction.getBuyerId();
 
-                    if(sellerRepository.findById(sellerId).isPresent()){ //Remove review id from the seller if the seller is present
+                    if (sellerRepository.findById(sellerId).isPresent()) { //Remove review id from the seller if the seller is present
                         Seller seller = sellerRepository.findById(sellerId).get();
                         List<String> sellersReviews = seller.getReviews();
+                        seller.updateReviewRating(review.getRating());
                         sellersReviews.remove(reviewId);
-
                         seller.setReviews(sellersReviews);
                         sellerRepository.save(seller);
                     }
 
-                    if(buyerRepository.findById(buyerId).isPresent()){ //Remove review id from the buyer if the buyer is present
+                    if (buyerRepository.findById(buyerId).isPresent()) { //Remove review id from the buyer if the buyer is present
                         Buyer buyer = buyerRepository.findById(buyerId).get();
                         List<String> buyersReviews = buyer.getReviews();
                         buyersReviews.remove(reviewId);
@@ -130,19 +126,16 @@ public class AdminService {
                         buyer.setReviews(buyersReviews);
                         buyerRepository.save(buyer);
                     }
-                }
-                else {
+                } else {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Transaction is not found"));
                 }
                 reviewRepository.deleteById(reviewId);
 
                 return ResponseEntity.ok("Review deleted successfully.");
-            }
-            else {
+            } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Review is not found"));
             }
-        }
-        else {
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
         }
     }
