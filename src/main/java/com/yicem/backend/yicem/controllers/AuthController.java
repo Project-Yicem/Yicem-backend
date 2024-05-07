@@ -9,6 +9,7 @@ import com.yicem.backend.yicem.security.jwt.JwtUtils;
 import com.yicem.backend.yicem.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,8 +20,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.yicem.backend.yicem.models.ERole.ROLE_SELLER;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -64,11 +68,34 @@ public class AuthController {
 				.map(item -> item.getAuthority())
 				.collect(Collectors.toList());
 
-		return ResponseEntity.ok(new JwtResponse(jwt,
-												 userDetails.getId(), 
-												 userDetails.getUsername(), 
-												 userDetails.getEmail(), 
-												 roles));
+		if(roles.get(0) == "ROLE_SELLER" || roles.get(1) == "ROLE_SELLER"){
+			Optional<Seller> sellerOptional = sellerRepository.findById(userDetails.getId());
+
+			if(sellerOptional.isPresent()){
+				Seller seller = sellerOptional.get();
+
+				if(seller.isApproved()){
+					return ResponseEntity.ok(new JwtResponse(jwt,
+							userDetails.getId(),
+							userDetails.getUsername(),
+							userDetails.getEmail(),
+							roles));
+				}
+				else {
+					return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Your venue is not approved yet."));
+				}
+			}
+			else{
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Venue is not found."));
+			}
+		}
+		else{
+			return ResponseEntity.ok(new JwtResponse(jwt,
+					userDetails.getId(),
+					userDetails.getUsername(),
+					userDetails.getEmail(),
+					roles));
+		}
 	}
 
 	@PostMapping("/signup")
@@ -110,7 +137,7 @@ public class AuthController {
 
 						break;
 					case "seller":
-						Role sellerRole = roleRepository.findByName(ERole.ROLE_SELLER)
+						Role sellerRole = roleRepository.findByName(ROLE_SELLER)
 								.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 						roles.add(sellerRole);
 
@@ -169,7 +196,7 @@ public class AuthController {
 
 		Set<Role> roles = new HashSet<>();
 
-		Role sellerRole = roleRepository.findByName(ERole.ROLE_SELLER)
+		Role sellerRole = roleRepository.findByName(ROLE_SELLER)
 				.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 		roles.add(sellerRole);
 		Role userRole = roleRepository.findByName(ERole.ROLE_USER)
@@ -179,7 +206,7 @@ public class AuthController {
 		user.setRoles(roles);
 		userRepository.save(user);
 
-		Seller seller = new Seller(user.getId(), signupRequest.getUsername(), signupRequest.isApproved(),
+		Seller seller = new Seller(user.getId(), signupRequest.getUsername(), false,
 				signupRequest.getAddress(), signupRequest.getPhone(), signupRequest.getBusinessName(),
 				signupRequest.getOpeningHour(), signupRequest.getClosingHour(), signupRequest.getLocationLatitude(),
 				signupRequest.getLocationLongitude(), signupRequest.getLogo(), signupRequest.getReservationTimeout());
