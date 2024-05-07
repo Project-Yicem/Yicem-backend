@@ -176,4 +176,17 @@ public class AdminService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
         }
     }
+
+    public ResponseEntity<?> getAllOfTheReports(HttpHeaders header) {
+        String adminId = userService.getIdFromHeader(header);
+
+        Optional<Admin> adminOptional = adminRepository.findById(adminId);
+        if (adminOptional.isPresent()) {
+            List<Report> reports = reportRepository.findAll();
+            return ResponseEntity.ok(reports);
+
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
+        }
+    }
 }
