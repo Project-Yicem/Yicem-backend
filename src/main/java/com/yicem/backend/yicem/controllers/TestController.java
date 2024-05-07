@@ -26,7 +26,7 @@ public class TestController {
 
 	@GetMapping("/public")
 	public String publicAccess() {
-		mailController.mailTest();
+		//mailController.mailTest();
 		return "Public Content.";
 	}
 	

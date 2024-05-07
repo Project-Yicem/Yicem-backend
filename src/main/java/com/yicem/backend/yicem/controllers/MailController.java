@@ -24,7 +24,7 @@ public class MailController {
         Optional<User> userOptional = userRepository.findById(seller.getId());
         if (userOptional.isPresent()) {
             User sellerUser = userOptional.get();
-            String bodyText = "You have successfully registered as a business owner to Yicem! Our team will review your application and activate your account as soona s possible.";
+            String bodyText = "You have successfully registered as a business owner to Yicem! Our team will review your application and activate your account as soon as possible.";
             mailService.sendMessage(sellerUser.getEmail(), "Welcome to Yicem", bodyText);
         }
         else{
@@ -57,7 +57,8 @@ public class MailController {
     }
 
     public void mailTest(){
-        mailService.sendMessage("egecenberci@gmail.com", "Mail Test", "Test mail body");
+        // enter your email instead of placeholder during testing
+        mailService.sendMessage("placeholder", "Mail Test", "Test mail body");
     }
     
 }
