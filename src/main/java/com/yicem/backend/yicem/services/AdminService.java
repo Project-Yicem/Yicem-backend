@@ -1,6 +1,5 @@
 package com.yicem.backend.yicem.services;
 
-import com.yicem.backend.yicem.controllers.MailController;
 import com.yicem.backend.yicem.models.*;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
 import com.yicem.backend.yicem.repositories.*;
@@ -50,9 +49,6 @@ public class AdminService {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private MailController mailController;
-
     public ResponseEntity<?> approveSellers(HttpHeaders header, String sellerId) {
         String adminId = userService.getIdFromHeader(header);
 
@@ -64,7 +60,6 @@ public class AdminService {
                 Seller seller = sellerInstance.get();
                 seller.setApproved(true);
                 sellerRepository.save(seller);
-                mailController.sendSellerVerifiedMail(seller);
                 return ResponseEntity.ok("Seller is approved");
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));
@@ -177,6 +172,19 @@ public class AdminService {
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("There is currently no business for which reports will be displayed"));
             }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
+        }
+    }
+
+    public ResponseEntity<?> getAllOfTheReports(HttpHeaders header) {
+        String adminId = userService.getIdFromHeader(header);
+
+        Optional<Admin> adminOptional = adminRepository.findById(adminId);
+        if (adminOptional.isPresent()) {
+            List<Report> reports = reportRepository.findAll();
+            return ResponseEntity.ok(reports);
+
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
         }

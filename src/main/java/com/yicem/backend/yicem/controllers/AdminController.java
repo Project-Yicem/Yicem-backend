@@ -68,4 +68,9 @@ public class AdminController {
     public ResponseEntity<?> getReports(@RequestHeader HttpHeaders header, @PathVariable String businessId) {
         return adminService.getReportsOfTheBusiness(header, businessId);
     }
+
+    @GetMapping("/reports")
+    public ResponseEntity<?> getAllReports(@RequestHeader HttpHeaders header) {
+        return adminService.getAllOfTheReports(header);
+    }
 }
