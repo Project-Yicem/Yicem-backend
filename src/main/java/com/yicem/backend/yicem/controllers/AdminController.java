@@ -63,4 +63,9 @@ public class AdminController {
     public ResponseEntity<?> deleteReview(@RequestHeader HttpHeaders header, @PathVariable String reviewId) {
         return adminService.deleteReview(header, reviewId);
     }
+
+    @GetMapping("/reports/{businessId}")
+    public ResponseEntity<?> getReports(@RequestHeader HttpHeaders header, @PathVariable String businessId) {
+        return adminService.getReportsOfTheBusiness(header, businessId);
+    }
 }

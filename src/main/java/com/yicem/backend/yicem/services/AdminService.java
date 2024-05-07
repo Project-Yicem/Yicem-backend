@@ -41,6 +41,9 @@ public class AdminService {
     private OfferRepository offerRepository;
 
     @Autowired
+    private ReportRepository reportRepository;
+
+    @Autowired
     private SellerService sellerService;
 
     @Autowired
@@ -149,6 +152,25 @@ public class AdminService {
                 return ResponseEntity.ok("Review deleted successfully.");
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Review is not found"));
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
+        }
+    }
+
+    public ResponseEntity<?> getReportsOfTheBusiness(HttpHeaders header, String businessId) {
+        String adminId = userService.getIdFromHeader(header);
+
+        Optional<Admin> adminOptional = adminRepository.findById(adminId);
+        if (adminOptional.isPresent()) {
+            Optional<Seller> sellerInstance = sellerRepository.findById(businessId);
+
+            if (sellerInstance.isPresent()) {
+                List<Report> reports = reportRepository.findByReportedBusinessId(businessId);
+
+                return ResponseEntity.ok(reports);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("There is currently no business for which reports will be displayed"));
             }
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Admin is not found"));
