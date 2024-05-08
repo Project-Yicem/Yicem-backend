@@ -54,6 +54,9 @@ public class AuthController {
 	@Autowired
 	JwtUtils jwtUtils;
 
+	@Autowired
+	MailController mailController;
+
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
@@ -211,7 +214,8 @@ public class AuthController {
 				signupRequest.getOpeningHour(), signupRequest.getClosingHour(), signupRequest.getLocationLatitude(),
 				signupRequest.getLocationLongitude(), signupRequest.getLogo(), signupRequest.getReservationTimeout());
 		sellerRepository.save(seller);
-
+		// send seller registration mail
+		mailController.sendSellerRegistrationMail(seller);
 		return ResponseEntity.ok(new MessageResponse("Seller registered successfully!"));
 	}
 
@@ -248,7 +252,8 @@ public class AuthController {
 
 		Buyer buyer = new Buyer(user.getId(), signupRequest.getUsername());
 		buyerRepository.save(buyer);
-
+		// send buyer signup mail
+		mailController.sendBuyerRegistrationMail(buyer);
 		return ResponseEntity.ok(new MessageResponse("Buyer registered successfully!"));
 	}
 

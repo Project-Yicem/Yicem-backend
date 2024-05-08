@@ -1,9 +1,12 @@
 package com.yicem.backend.yicem.services;
 
+import com.yicem.backend.yicem.controllers.MailController;
 import com.yicem.backend.yicem.models.*;
 import com.yicem.backend.yicem.payload.response.MessageResponse;
 import com.yicem.backend.yicem.repositories.*;
 import lombok.AllArgsConstructor;
+
+import org.eclipse.angus.mail.util.MailConnectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -49,6 +52,9 @@ public class AdminService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MailController mailController;
+
     public ResponseEntity<?> approveSellers(HttpHeaders header, String sellerId) {
         String adminId = userService.getIdFromHeader(header);
 
@@ -60,6 +66,7 @@ public class AdminService {
                 Seller seller = sellerInstance.get();
                 seller.setApproved(true);
                 sellerRepository.save(seller);
+                mailController.sendSellerVerifiedMail(seller);
                 return ResponseEntity.ok("Seller is approved");
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Seller is not found"));

@@ -2,6 +2,8 @@ package com.yicem.backend.yicem.controllers;
 
 import com.yicem.backend.yicem.models.User;
 import com.yicem.backend.yicem.repositories.UserRepository;
+import com.yicem.backend.yicem.services.MailService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,8 +21,12 @@ public class TestController {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private MailController mailController;
+
 	@GetMapping("/public")
 	public String publicAccess() {
+		//mailController.mailTest();
 		return "Public Content.";
 	}
 	
