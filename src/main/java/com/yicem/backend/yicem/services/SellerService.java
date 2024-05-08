@@ -144,7 +144,6 @@ public class SellerService {
         }
     }
 
-
     public ResponseEntity<?> modifyOffer(OfferRequest request, String sellerID, String offerID) {
 
         Optional<Seller> sellerOptional = sellerRepository.findById(sellerID);
@@ -198,6 +197,19 @@ public class SellerService {
                     // Update seller's current offer list and save to database
                     seller.removeOffer(offerID);
                     sellerRepository.save(seller);
+
+                    List<Reservation> reservations = reservationRepository.findAllByOfferId(offerID);
+                    for (Reservation reservation : reservations) {
+                        String reservationID = reservation.getId();
+                        Optional<Buyer> buyerOptional = buyerRepository.findByActiveReservationsContains(reservationID);
+                        if (buyerOptional.isPresent()) {
+                            Buyer buyer = buyerOptional.get();
+                            buyer.removeReservation(reservationID);
+
+                            buyerRepository.save(buyer);
+                        }
+                        reservationRepository.delete(reservation);
+                    }
 
                     offerRepository.deleteById(offerID);
 
@@ -402,6 +414,29 @@ public class SellerService {
             return new ResponseEntity<>(new MessageResponse("Specified seller does not exist"), HttpStatus.NOT_FOUND);
         }
 
+    }
+
+    public ResponseEntity<?> changeUsername(HttpHeaders header, String newUsername){
+        String userId = userService.getIdFromHeader(header);
+
+        Optional<User> userInstance = userRepository.findById(userId);
+        Optional<Seller> sellerInstance = sellerRepository.findById(userId);
+
+        if(userInstance.isPresent() && sellerInstance.isPresent()) {
+            User user = userInstance.get();
+            Seller seller = sellerInstance.get();
+
+            user.setUsername(newUsername);
+            seller.setUsername(newUsername);
+
+            userRepository.save(user);
+            sellerRepository.save(seller);
+
+            return ResponseEntity.ok(new MessageResponse("Username changed"));
+        }
+        else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("User is not found"));
+        }
     }
 
     public ResponseEntity<?> changePassword(HttpHeaders header, PasswordChangeRequest passwordChangeRequest) {
