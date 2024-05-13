@@ -52,6 +52,7 @@ public class SellerResponse {
         this.reviews = seller.getReviews();
         this.offers = seller.getOffers();
         this.pastTransactions = seller.getPastTransactions();
+        this.rating = seller.getRating();
     }
 }
 

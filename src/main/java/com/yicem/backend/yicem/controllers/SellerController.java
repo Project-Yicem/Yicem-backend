@@ -40,6 +40,11 @@ public class SellerController {
         return sellerService.getSeller(seller);
     }
 
+    @PutMapping("/update-username")
+    public ResponseEntity<?> updateUsername(@RequestHeader HttpHeaders header, @RequestBody String newUsername){
+        return sellerService.changeUsername(header, newUsername);
+    }
+
     @PutMapping("/update-password")
     public ResponseEntity<?> updatePassword(@RequestHeader HttpHeaders header,
                                             @RequestBody PasswordChangeRequest passwordChangeRequest) {

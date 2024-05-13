@@ -10,4 +10,5 @@ public interface BuyerRepository extends MongoRepository<Buyer, String> {
 
     Boolean existsByUsername(String username);
 
+    Optional<Buyer> findByActiveReservationsContains(String reservationId);
 }
